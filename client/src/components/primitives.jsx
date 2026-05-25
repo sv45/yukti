@@ -2,7 +2,7 @@
 // Ported from design_handoff_yukti/design_files/components/primitives.jsx
 // Adapted from Babel/window globals to ES module exports.
 
-import React from 'react';
+import React, { useState } from 'react';
 import { REFS } from '../data/refs';
 
 /* ===== Citation marker ===== */
@@ -107,7 +107,9 @@ export function Row({ label, hint, citeIds, control, points, localTag }) {
 }
 
 /* ===== Section wrapper ===== */
-export function Section({ num, title, sub, headerRight, children, footer }) {
+export function Section({ num, title, sub, headerRight, children, footer, collapsible, collapsed }) {
+  const [open, setOpen] = useState(true);
+  const isVisible = collapsed !== undefined ? !collapsed : (!collapsible || open);
   return (
     <section className="section">
       <header className="section__hd">
@@ -115,19 +117,30 @@ export function Section({ num, title, sub, headerRight, children, footer }) {
           <span className="section__num">{num}</span>
           <div>
             <div className="section__title">{title}</div>
-            {sub && <div className="section__sub">{sub}</div>}
+            {sub && !collapsed && <div className="section__sub">{sub}</div>}
           </div>
         </div>
-        {headerRight && <div className="section__hd-r">{headerRight}</div>}
+        <div className="section__hd-r">
+          {headerRight}
+          {collapsible && (
+            <button
+              onClick={() => setOpen(o => !o)}
+              style={{ background: "none", border: "none", cursor: "pointer", fontSize: "12px", color: "var(--yk-ink-500)", padding: "2px 6px" }}
+              aria-expanded={open}
+            >
+              {open ? "Hide" : "Show"}
+            </button>
+          )}
+        </div>
       </header>
-      {children}
-      {footer}
+      {isVisible && children}
+      {isVisible && footer}
     </section>
   );
 }
 
 /* ===== Risk band pill ===== */
-export function RiskBand({ level, children }) {
+export function RiskBand({ level, style, children }) {
   const cls = {
     low:  "risk-band risk-band--low",
     mod:  "risk-band risk-band--mod",
@@ -135,7 +148,7 @@ export function RiskBand({ level, children }) {
     info: "risk-band risk-band--info",
   }[level] || "risk-band risk-band--info";
   return (
-    <span className={cls}>
+    <span className={cls} style={style}>
       <span className="risk-band__dot" />
       {children}
     </span>
@@ -143,9 +156,9 @@ export function RiskBand({ level, children }) {
 }
 
 /* ===== Result block ===== */
-export function ResultBlock({ label, primary, detail, band }) {
+export function ResultBlock({ label, primary, detail, band, level }) {
   return (
-    <div className="result">
+    <div className={`result${level ? ` result--${level}` : ""}`}>
       <div>
         <div className="result__label">{label}</div>
         <div className="result__primary">{primary}</div>

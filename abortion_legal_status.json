@@ -1,0 +1,379 @@
+{
+  "meta": {
+    "last_verified": "2026-05-09",
+    "next_check_due": "2026-05-10",
+    "sources": [
+      "https://www.guttmacher.org/state-policy/explore/state-policies-abortion-bans",
+      "https://www.guttmacher.org/state-policy/explore/counseling-and-waiting-periods-abortion",
+      "https://www.kff.org/womens-health-policy/abortion-in-the-u-s-dashboard/",
+      "https://reproductiverights.org/maps/abortion-laws-by-state/"
+    ],
+    "disclaimer": "This data is for clinical decision support only and does not constitute legal advice. Laws change frequently. Always verify current status before prescribing. Last manually verified against Guttmacher Institute, KFF, and Center for Reproductive Rights as of the date above."
+  },
+  "states": {
+    "AL": {
+      "status": "banned",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": 48,
+      "summary": "Alabama enforces a near-total abortion ban with no exceptions for rape or incest. Exceptions exist only when necessary to prevent death or serious health risk to the pregnant person. Medication abortion is not legal.",
+      "in_person_required": true
+    },
+    "AK": {
+      "status": "legal",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": 0,
+      "summary": "Abortion is legal in Alaska without a gestational limit set by statute. No waiting period is required. Medication abortion is available.",
+      "in_person_required": false
+    },
+    "AZ": {
+      "status": "legal",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": 0,
+      "summary": "Arizona voters amended the state constitution in 2024 to protect abortion access through fetal viability. Medication abortion is legal. A 2026 court ruling voided telemedicine restrictions.",
+      "in_person_required": false
+    },
+    "AR": {
+      "status": "banned",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": null,
+      "summary": "Arkansas enforces a near-total abortion ban. Exceptions exist only for medical emergencies to prevent death or substantial physical impairment. Medication abortion is not legal.",
+      "in_person_required": true
+    },
+    "CA": {
+      "status": "legal",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": 0,
+      "summary": "California protects abortion access through viability and beyond when necessary for health. No waiting period. Medication abortion is legal and available via telemedicine. California has shield laws protecting providers from out-of-state prosecution.",
+      "in_person_required": false
+    },
+    "CO": {
+      "status": "legal",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": 0,
+      "summary": "Colorado has no gestational limit on abortion. No waiting period. Medication abortion is legal and available via telemedicine.",
+      "in_person_required": false
+    },
+    "CT": {
+      "status": "legal",
+      "gestational_limit_weeks": 26,
+      "waiting_period_hours": 0,
+      "summary": "Connecticut protects abortion access through 26 weeks. Beyond 26 weeks, a physician must determine the procedure is necessary. No waiting period. Medication abortion is available including via telemedicine.",
+      "in_person_required": false
+    },
+    "DE": {
+      "status": "legal",
+      "gestational_limit_weeks": 22,
+      "waiting_period_hours": 0,
+      "summary": "Delaware allows abortion up to 22 weeks. No waiting period. Medication abortion is legal.",
+      "in_person_required": false
+    },
+    "DC": {
+      "status": "legal",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": 0,
+      "summary": "Washington DC has no gestational limit on abortion. No waiting period. Medication abortion is legal and broadly accessible.",
+      "in_person_required": false
+    },
+    "FL": {
+      "status": "restricted",
+      "gestational_limit_weeks": 6,
+      "waiting_period_hours": 24,
+      "summary": "Florida enforces a 6-week gestational limit — before most people know they are pregnant. Narrow exceptions apply for rape, incest, human trafficking, and serious health risks. A 24-hour waiting period is required. Medication abortion is available only within the 6-week limit.",
+      "in_person_required": true
+    },
+    "GA": {
+      "status": "restricted",
+      "gestational_limit_weeks": 6,
+      "waiting_period_hours": 24,
+      "summary": "Georgia prohibits abortion after approximately 6 weeks of gestation. Exceptions include rape, incest, fetal anomaly incompatible with life, and medical emergencies. A 24-hour waiting period applies. Medication abortion is available within the 6-week limit.",
+      "in_person_required": true
+    },
+    "HI": {
+      "status": "legal",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": 0,
+      "summary": "Hawaii allows abortion without a gestational limit. No waiting period. Medication abortion is legal.",
+      "in_person_required": false
+    },
+    "ID": {
+      "status": "banned",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": null,
+      "summary": "Idaho enforces a near-total abortion ban. Exceptions exist only for life-limiting conditions, rape, and incest (with law enforcement documentation). Medication abortion is not legal.",
+      "in_person_required": true
+    },
+    "IL": {
+      "status": "legal",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": 0,
+      "summary": "Illinois protects abortion access through viability. No waiting period. Medication abortion is legal and available via telemedicine. Illinois has enacted shield laws for providers.",
+      "in_person_required": false
+    },
+    "IN": {
+      "status": "banned",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": null,
+      "summary": "Indiana enforces a near-total abortion ban. Very limited exceptions for serious health risks, lethal fetal anomalies, rape, and incest apply. Medication abortion is not legal.",
+      "in_person_required": true
+    },
+    "IA": {
+      "status": "restricted",
+      "gestational_limit_weeks": 6,
+      "waiting_period_hours": 24,
+      "summary": "Iowa enforces a 6-week gestational limit. Exceptions for rape and incest require reporting to law enforcement within 45 days. A 24-hour waiting period applies. Medication abortion is only available within the 6-week limit.",
+      "in_person_required": true
+    },
+    "KS": {
+      "status": "restricted",
+      "gestational_limit_weeks": 22,
+      "waiting_period_hours": 24,
+      "summary": "Kansas allows abortion up to 22 weeks. A 24-hour waiting period is required. Medication abortion is available within the gestational limit but in-person counseling is required before dispensing.",
+      "in_person_required": true
+    },
+    "KY": {
+      "status": "banned",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": null,
+      "summary": "Kentucky enforces a near-total abortion ban. Exceptions exist for life-threatening emergencies only. Medication abortion is not legal.",
+      "in_person_required": true
+    },
+    "LA": {
+      "status": "banned",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": null,
+      "summary": "Louisiana enforces a near-total abortion ban with very limited exceptions for medical emergencies and certain fetal conditions. Medication abortion is not legal. Louisiana is pursuing prosecution of out-of-state providers.",
+      "in_person_required": true
+    },
+    "ME": {
+      "status": "legal",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": 0,
+      "summary": "Maine allows abortion without a statutory gestational limit. After viability, a physician must determine the procedure is necessary. No waiting period. Medication abortion is available.",
+      "in_person_required": false
+    },
+    "MD": {
+      "status": "legal",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": 0,
+      "summary": "Maryland protects abortion access without a gestational limit. No waiting period. Medication abortion is legal and available via telemedicine.",
+      "in_person_required": false
+    },
+    "MA": {
+      "status": "legal",
+      "gestational_limit_weeks": 24,
+      "waiting_period_hours": 0,
+      "summary": "Massachusetts allows abortion up to 24 weeks, and beyond when necessary for health. No waiting period. Medication abortion is legal. Massachusetts has enacted EMTALA protections and shield laws.",
+      "in_person_required": false
+    },
+    "MI": {
+      "status": "legal",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": 0,
+      "summary": "Michigan voters amended the state constitution in 2022 to protect abortion through viability. No waiting period. Medication abortion is legal.",
+      "in_person_required": false
+    },
+    "MN": {
+      "status": "legal",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": 0,
+      "summary": "Minnesota protects abortion access through viability and beyond for health. No waiting period. Medication abortion is legal and available via telemedicine.",
+      "in_person_required": false
+    },
+    "MS": {
+      "status": "banned",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": null,
+      "summary": "Mississippi enforces a near-total abortion ban. Exceptions exist for life of the pregnant person and rape (with law enforcement documentation). Medication abortion is not legal.",
+      "in_person_required": true
+    },
+    "MO": {
+      "status": "restricted",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": null,
+      "summary": "Missouri's near-total abortion ban has been blocked by courts following a 2024 constitutional amendment protecting abortion access. Legal status remains in active litigation. Verify current status before prescribing.",
+      "in_person_required": null
+    },
+    "MT": {
+      "status": "legal",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": 0,
+      "summary": "Montana protects abortion access without a gestational limit. No waiting period. Medication abortion is legal.",
+      "in_person_required": false
+    },
+    "NE": {
+      "status": "restricted",
+      "gestational_limit_weeks": 12,
+      "waiting_period_hours": 24,
+      "summary": "Nebraska prohibits abortion after 12 weeks. A 24-hour waiting period is required. Medication abortion is available only within the 12-week limit and requires an in-person visit.",
+      "in_person_required": true
+    },
+    "NV": {
+      "status": "legal",
+      "gestational_limit_weeks": 24,
+      "waiting_period_hours": 0,
+      "summary": "Nevada allows abortion up to 24 weeks. No waiting period. Medication abortion is legal. A 2024 constitutional amendment protecting abortion access is expected to appear on the 2026 ballot for ratification.",
+      "in_person_required": false
+    },
+    "NH": {
+      "status": "restricted",
+      "gestational_limit_weeks": 24,
+      "waiting_period_hours": 0,
+      "summary": "New Hampshire allows abortion up to 24 weeks. Parental consent is required for minors. No waiting period. Medication abortion is legal.",
+      "in_person_required": false
+    },
+    "NJ": {
+      "status": "legal",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": 0,
+      "summary": "New Jersey protects abortion access at all stages of pregnancy. No waiting period. Medication abortion is legal and available via telemedicine.",
+      "in_person_required": false
+    },
+    "NM": {
+      "status": "legal",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": 0,
+      "summary": "New Mexico has no gestational limit on abortion. No waiting period. Medication abortion is legal. New Mexico is a major destination for patients traveling from Texas and other ban states.",
+      "in_person_required": false
+    },
+    "NY": {
+      "status": "legal",
+      "gestational_limit_weeks": 24,
+      "waiting_period_hours": 0,
+      "summary": "New York protects abortion access through 24 weeks, and beyond when necessary for health. No waiting period. Medication abortion is legal. New York has enacted EMTALA protections and shield laws for providers.",
+      "in_person_required": false
+    },
+    "NC": {
+      "status": "restricted",
+      "gestational_limit_weeks": 12,
+      "waiting_period_hours": 72,
+      "summary": "North Carolina prohibits abortion after 12 weeks, with exceptions for rape (up to 20 weeks), fetal anomaly (up to 24 weeks), and life or health of the pregnant person. A 72-hour waiting period is required. Medication abortion requires in-person dispensing.",
+      "in_person_required": true
+    },
+    "ND": {
+      "status": "banned",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": null,
+      "summary": "North Dakota enforces a near-total abortion ban. Exceptions exist for life-threatening emergencies, rape, and incest (with law enforcement documentation, up to 6 weeks). Medication abortion is not legal.",
+      "in_person_required": true
+    },
+    "OH": {
+      "status": "legal",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": 24,
+      "summary": "Ohio voters amended the state constitution in 2023 to protect abortion through viability. Previous restrictions remain in legal flux. A 24-hour waiting period may still apply. Medication abortion is legal. Verify current enforcement status.",
+      "in_person_required": null
+    },
+    "OK": {
+      "status": "banned",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": null,
+      "summary": "Oklahoma enforces a near-total abortion ban from fertilization. Exceptions exist only for medical emergencies, rape, and incest (with law enforcement documentation). Medication abortion is not legal.",
+      "in_person_required": true
+    },
+    "OR": {
+      "status": "legal",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": 0,
+      "summary": "Oregon has no gestational limit on abortion. No waiting period. Medication abortion is legal and available via telemedicine. Oregon has enacted shield laws and expanded abortion access in 2025.",
+      "in_person_required": false
+    },
+    "PA": {
+      "status": "restricted",
+      "gestational_limit_weeks": 24,
+      "waiting_period_hours": 24,
+      "summary": "Pennsylvania allows abortion up to 24 weeks. A 24-hour waiting period is required. In-person counseling before the waiting period is mandated. Medication abortion is available within the 24-week limit.",
+      "in_person_required": true
+    },
+    "PR": {
+      "status": "legal",
+      "gestational_limit_weeks": 22,
+      "waiting_period_hours": 0,
+      "summary": "Puerto Rico allows abortion up to 22 weeks. No waiting period. Medication abortion is available.",
+      "in_person_required": false
+    },
+    "RI": {
+      "status": "legal",
+      "gestational_limit_weeks": 24,
+      "waiting_period_hours": 0,
+      "summary": "Rhode Island codified abortion access through 24 weeks in 2019. No waiting period. Medication abortion is legal.",
+      "in_person_required": false
+    },
+    "SC": {
+      "status": "restricted",
+      "gestational_limit_weeks": 6,
+      "waiting_period_hours": 0,
+      "summary": "South Carolina enforces a 6-week gestational limit. Exceptions apply for rape and incest (with law enforcement documentation), fetal anomaly, and health emergencies. Medication abortion is only available within the 6-week limit.",
+      "in_person_required": true
+    },
+    "SD": {
+      "status": "banned",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": null,
+      "summary": "South Dakota enforces a near-total abortion ban. Exceptions exist only for life of the pregnant person. Medication abortion is not legal.",
+      "in_person_required": true
+    },
+    "TN": {
+      "status": "banned",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": null,
+      "summary": "Tennessee enforces a near-total abortion ban. Emergency exceptions were clarified in 2025 but providers remain cautious about enforcement. Medication abortion is not legal.",
+      "in_person_required": true
+    },
+    "TX": {
+      "status": "banned",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": null,
+      "summary": "Texas enforces a near-total abortion ban from fertilization with civil and criminal penalties. Emergency exceptions exist but are narrowly interpreted. Medication abortion is not legal. Texas has pursued prosecution of out-of-state providers.",
+      "in_person_required": true
+    },
+    "UT": {
+      "status": "restricted",
+      "gestational_limit_weeks": 18,
+      "waiting_period_hours": 72,
+      "summary": "Utah prohibits abortion after 18 weeks. A 72-hour waiting period is required. Medication abortion is available only within the 18-week limit and requires an in-person visit.",
+      "in_person_required": true
+    },
+    "VT": {
+      "status": "legal",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": 0,
+      "summary": "Vermont amended its constitution in 2022 to explicitly protect abortion access without restriction. No waiting period. Medication abortion is legal and available via telemedicine.",
+      "in_person_required": false
+    },
+    "VA": {
+      "status": "legal",
+      "gestational_limit_weeks": 25,
+      "waiting_period_hours": 0,
+      "summary": "Virginia allows abortion up to 25 weeks. No waiting period. Medication abortion is legal. Virginia has enacted EMTALA protections.",
+      "in_person_required": false
+    },
+    "WA": {
+      "status": "legal",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": 0,
+      "summary": "Washington protects abortion access through viability and beyond for health. No waiting period. Medication abortion is legal and available via telemedicine. Washington has shield laws protecting providers.",
+      "in_person_required": false
+    },
+    "WV": {
+      "status": "banned",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": null,
+      "summary": "West Virginia enforces a near-total abortion ban. Very limited exceptions apply for medical emergencies, rape, and incest (with law enforcement documentation, up to 8 weeks). Medication abortion is not legal.",
+      "in_person_required": true
+    },
+    "WI": {
+      "status": "banned",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": null,
+      "summary": "Wisconsin's near-total abortion ban remains enforced pending ongoing legal challenges. Exceptions exist for life of the pregnant person only. Medication abortion is not legal.",
+      "in_person_required": true
+    },
+    "WY": {
+      "status": "restricted",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": null,
+      "summary": "Wyoming's abortion ban was struck down by the state Supreme Court in January 2026. A new 6-week ban was signed in March 2026 and is being challenged. Legal status is actively in flux. Verify current status before prescribing.",
+      "in_person_required": null
+    }
+  }
+}

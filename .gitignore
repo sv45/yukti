@@ -31,3 +31,9 @@ venv/
 # Logs
 *.log
 npm-debug.log*
+
+# Claude Code session files
+.claude/
+
+# Archives
+*.zip

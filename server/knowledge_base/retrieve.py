@@ -67,7 +67,7 @@ def retrieve(
     Args:
         query:       The physician's question.
         pathway:     Clinical pathway filter (e.g. "epl"). Optional.
-        institution: Institution ID filter (e.g. "nypq"). Optional.
+        institution: Institution ID filter (e.g. "memorial"). Optional.
 
     Returns:
         List of dicts with keys: text, score, source_filename, source_type,

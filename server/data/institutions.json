@@ -1,9 +1,9 @@
 {
   "institutions": [
     {
-      "id": "nypq",
-      "name": "NewYork-Presbyterian Queens",
-      "display_name": "NYP Queens",
+      "id": "memorial",
+      "name": "Memorial Hospital",
+      "display_name": "Memorial Hospital",
       "protocols": ["epl", "contraception"],
       "rhogam_policy": "NOT indicated for EPL less than 12 weeks per OB/GYN departmental guidance 2025"
     }

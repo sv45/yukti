@@ -19,7 +19,7 @@ This folder contains the approved clinical source documents that are ingested in
 
 5. **Filename convention.** Use descriptive, lowercase, hyphenated filenames that include the source and year:
    - `acog-practice-bulletin-200-epl-2018.pdf`
-   - `nypq-ed-protocol-epl-2025.pdf`
+   - `memorial-ed-protocol-epl-2025.pdf`
    - `sfp-medication-abortion-2023.pdf`
 
 ## After adding documents
@@ -31,7 +31,7 @@ Run the ingestion script from the `/server` directory:
 python knowledge_base/ingest.py --source-type national_guideline --pathway epl ectopic
 
 # Institutional protocols
-python knowledge_base/ingest.py --source-type institutional_protocol --institution nypq --pathway epl contraception
+python knowledge_base/ingest.py --source-type institutional_protocol --institution memorial --pathway epl contraception
 ```
 
 This will chunk, embed, and index the documents into ChromaDB. Do not query Yukti until ingestion has been run.

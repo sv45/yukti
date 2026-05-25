@@ -1,0 +1,428 @@
+{
+  "meta": {
+    "last_updated": "2026-05-09",
+    "sources": [
+      "https://www.kff.org/womens-health-policy/abortion-in-the-u-s-dashboard/",
+      "https://www.guttmacher.org/state-policy/explore/overview-abortion-laws",
+      "https://reproductiverights.org/maps/abortion-laws-by-state/"
+    ]
+  },
+  "states": {
+    "AL": {
+      "status": "banned",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": null,
+      "in_person_required": true,
+      "summary": "Near-total abortion ban in effect. No exceptions for rape or incest. Medical emergency exception only.",
+      "last_verified": "2026-05-09"
+    },
+    "AR": {
+      "status": "banned",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": null,
+      "in_person_required": true,
+      "summary": "Near-total abortion ban in effect. Limited medical emergency exception.",
+      "last_verified": "2026-05-09"
+    },
+    "ID": {
+      "status": "banned",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": null,
+      "in_person_required": true,
+      "summary": "Near-total abortion ban in effect. Medical emergency exception only.",
+      "last_verified": "2026-05-09"
+    },
+    "IN": {
+      "status": "banned",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": null,
+      "in_person_required": true,
+      "summary": "Near-total abortion ban in effect. Exceptions for rape, incest, and serious health risk to the patient.",
+      "last_verified": "2026-05-09"
+    },
+    "KY": {
+      "status": "banned",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": null,
+      "in_person_required": true,
+      "summary": "Near-total abortion ban in effect. Medical emergency exception only.",
+      "last_verified": "2026-05-09"
+    },
+    "LA": {
+      "status": "banned",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": null,
+      "in_person_required": true,
+      "summary": "Near-total abortion ban in effect. Narrow medical emergency exception.",
+      "last_verified": "2026-05-09"
+    },
+    "MS": {
+      "status": "banned",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": null,
+      "in_person_required": true,
+      "summary": "Near-total abortion ban in effect. Medical emergency exception only.",
+      "last_verified": "2026-05-09"
+    },
+    "MO": {
+      "status": "banned",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": null,
+      "in_person_required": true,
+      "summary": "Near-total abortion ban in effect. Medical emergency exception only.",
+      "last_verified": "2026-05-09"
+    },
+    "ND": {
+      "status": "banned",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": null,
+      "in_person_required": true,
+      "summary": "Near-total abortion ban in effect. Exceptions for rape, incest (up to 6 weeks), and medical emergency.",
+      "last_verified": "2026-05-09"
+    },
+    "OK": {
+      "status": "banned",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": null,
+      "in_person_required": true,
+      "summary": "Near-total abortion ban in effect. Medical emergency exception only.",
+      "last_verified": "2026-05-09"
+    },
+    "SD": {
+      "status": "banned",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": null,
+      "in_person_required": true,
+      "summary": "Near-total abortion ban in effect. Medical emergency exception only.",
+      "last_verified": "2026-05-09"
+    },
+    "TN": {
+      "status": "banned",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": null,
+      "in_person_required": true,
+      "summary": "Near-total abortion ban in effect. Medical emergency exception only.",
+      "last_verified": "2026-05-09"
+    },
+    "TX": {
+      "status": "banned",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": null,
+      "in_person_required": true,
+      "summary": "Near-total abortion ban in effect. Civil and criminal liability for those who aid or perform abortions. Narrow medical emergency exception.",
+      "last_verified": "2026-05-09"
+    },
+    "WI": {
+      "status": "banned",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": null,
+      "in_person_required": true,
+      "summary": "Near-total abortion ban in effect under an 1849 law. Status subject to ongoing legal challenges — verify current enforceability.",
+      "last_verified": "2026-05-09"
+    },
+    "WV": {
+      "status": "banned",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": null,
+      "in_person_required": true,
+      "summary": "Near-total abortion ban in effect. Narrow exceptions for rape, incest, and medical emergency.",
+      "last_verified": "2026-05-09"
+    },
+    "FL": {
+      "status": "restricted",
+      "gestational_limit_weeks": 6,
+      "waiting_period_hours": 0,
+      "in_person_required": true,
+      "summary": "Prohibited after approximately 6 weeks (cardiac activity). Exceptions for rape, incest, human trafficking, and medical emergencies.",
+      "last_verified": "2026-05-09"
+    },
+    "GA": {
+      "status": "restricted",
+      "gestational_limit_weeks": 6,
+      "waiting_period_hours": 0,
+      "in_person_required": true,
+      "summary": "Prohibited after approximately 6 weeks (cardiac activity). Exceptions for rape, incest, fetal anomaly, and medical emergencies.",
+      "last_verified": "2026-05-09"
+    },
+    "IA": {
+      "status": "restricted",
+      "gestational_limit_weeks": 6,
+      "waiting_period_hours": 0,
+      "in_person_required": true,
+      "summary": "Prohibited after approximately 6 weeks (cardiac activity). Exceptions for medical emergencies, rape, incest, and fetal abnormalities.",
+      "last_verified": "2026-05-09"
+    },
+    "KS": {
+      "status": "restricted",
+      "gestational_limit_weeks": 22,
+      "waiting_period_hours": 24,
+      "in_person_required": true,
+      "summary": "State constitution protects abortion access. Prohibited after 22 weeks with limited exceptions. 24-hour mandatory waiting period.",
+      "last_verified": "2026-05-09"
+    },
+    "NC": {
+      "status": "restricted",
+      "gestational_limit_weeks": 12,
+      "waiting_period_hours": 72,
+      "in_person_required": true,
+      "summary": "Prohibited after 12 weeks with exceptions for rape, incest, fetal anomaly, and medical emergencies. 72-hour mandatory waiting period.",
+      "last_verified": "2026-05-09"
+    },
+    "NE": {
+      "status": "restricted",
+      "gestational_limit_weeks": 12,
+      "waiting_period_hours": 0,
+      "in_person_required": true,
+      "summary": "Prohibited after 12 weeks with exceptions for medical emergencies, rape, and incest.",
+      "last_verified": "2026-05-09"
+    },
+    "OH": {
+      "status": "restricted",
+      "gestational_limit_weeks": 22,
+      "waiting_period_hours": 24,
+      "in_person_required": true,
+      "summary": "State constitutional amendment (Issue 1, 2023) protects abortion rights. Statutory restrictions through 22 weeks remain subject to litigation — verify current law.",
+      "last_verified": "2026-05-09"
+    },
+    "SC": {
+      "status": "restricted",
+      "gestational_limit_weeks": 6,
+      "waiting_period_hours": 0,
+      "in_person_required": true,
+      "summary": "Prohibited after approximately 6 weeks (cardiac activity). Exceptions for rape, incest, fetal anomaly, and medical emergencies.",
+      "last_verified": "2026-05-09"
+    },
+    "UT": {
+      "status": "restricted",
+      "gestational_limit_weeks": 18,
+      "waiting_period_hours": 72,
+      "in_person_required": true,
+      "summary": "Prohibited after 18 weeks. 72-hour mandatory waiting period after state-directed counseling. Exceptions for medical emergencies and fetal anomalies.",
+      "last_verified": "2026-05-09"
+    },
+    "WY": {
+      "status": "restricted",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": null,
+      "in_person_required": true,
+      "summary": "Abortion ban subject to ongoing litigation — status may have changed. Verify current enforceability before prescribing.",
+      "last_verified": "2026-05-09"
+    },
+    "AK": {
+      "status": "legal",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": null,
+      "in_person_required": false,
+      "summary": "State constitution protects abortion access through viability and beyond for health reasons. No mandatory waiting period.",
+      "last_verified": "2026-05-09"
+    },
+    "AZ": {
+      "status": "legal",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": null,
+      "in_person_required": false,
+      "summary": "Abortion legal through viability. Proposition 139 (2024) enshrined abortion rights in the state constitution.",
+      "last_verified": "2026-05-09"
+    },
+    "CA": {
+      "status": "legal",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": null,
+      "in_person_required": false,
+      "summary": "State constitution protects abortion access. No gestational limit for health of the patient. Telehealth medication abortion permitted.",
+      "last_verified": "2026-05-09"
+    },
+    "CO": {
+      "status": "legal",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": null,
+      "in_person_required": false,
+      "summary": "No gestational limit or waiting period. Proposition 89 (2024) enshrined abortion access in the state constitution.",
+      "last_verified": "2026-05-09"
+    },
+    "CT": {
+      "status": "legal",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": null,
+      "in_person_required": false,
+      "summary": "Legal through viability; after viability when necessary for health of patient. No mandatory waiting period.",
+      "last_verified": "2026-05-09"
+    },
+    "DC": {
+      "status": "legal",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": null,
+      "in_person_required": false,
+      "summary": "No gestational limit or mandatory waiting period. Telehealth medication abortion permitted.",
+      "last_verified": "2026-05-09"
+    },
+    "DE": {
+      "status": "legal",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": null,
+      "in_person_required": false,
+      "summary": "Legal through viability. No mandatory waiting period.",
+      "last_verified": "2026-05-09"
+    },
+    "HI": {
+      "status": "legal",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": null,
+      "in_person_required": false,
+      "summary": "Legal through viability. No mandatory waiting period. Telehealth medication abortion permitted.",
+      "last_verified": "2026-05-09"
+    },
+    "IL": {
+      "status": "legal",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": null,
+      "in_person_required": false,
+      "summary": "Legal through viability; after viability when necessary for health of patient. No mandatory waiting period.",
+      "last_verified": "2026-05-09"
+    },
+    "MA": {
+      "status": "legal",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": null,
+      "in_person_required": false,
+      "summary": "Legal through 24 weeks; after 24 weeks when necessary for health of patient. No mandatory waiting period.",
+      "last_verified": "2026-05-09"
+    },
+    "MD": {
+      "status": "legal",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": null,
+      "in_person_required": false,
+      "summary": "Legal through viability. No mandatory waiting period. Telehealth medication abortion permitted.",
+      "last_verified": "2026-05-09"
+    },
+    "ME": {
+      "status": "legal",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": null,
+      "in_person_required": false,
+      "summary": "Legal through viability. No mandatory waiting period.",
+      "last_verified": "2026-05-09"
+    },
+    "MI": {
+      "status": "legal",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": null,
+      "in_person_required": false,
+      "summary": "Proposal 3 (2022) enshrined abortion rights in the state constitution. Legal through viability. No mandatory waiting period.",
+      "last_verified": "2026-05-09"
+    },
+    "MN": {
+      "status": "legal",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": null,
+      "in_person_required": false,
+      "summary": "State constitution protects abortion access. No gestational limit. No mandatory waiting period.",
+      "last_verified": "2026-05-09"
+    },
+    "MT": {
+      "status": "legal",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": null,
+      "in_person_required": false,
+      "summary": "State constitution protects abortion access through viability. No mandatory waiting period.",
+      "last_verified": "2026-05-09"
+    },
+    "NH": {
+      "status": "legal",
+      "gestational_limit_weeks": 24,
+      "waiting_period_hours": 0,
+      "in_person_required": false,
+      "summary": "Legal through 24 weeks with exceptions after. No mandatory waiting period.",
+      "last_verified": "2026-05-09"
+    },
+    "NJ": {
+      "status": "legal",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": null,
+      "in_person_required": false,
+      "summary": "Legal through viability. No mandatory waiting period. Telehealth medication abortion permitted.",
+      "last_verified": "2026-05-09"
+    },
+    "NM": {
+      "status": "legal",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": null,
+      "in_person_required": false,
+      "summary": "No gestational limit or mandatory waiting period. Telehealth medication abortion permitted.",
+      "last_verified": "2026-05-09"
+    },
+    "NV": {
+      "status": "legal",
+      "gestational_limit_weeks": 24,
+      "waiting_period_hours": 0,
+      "in_person_required": false,
+      "summary": "Legal through 24 weeks. No mandatory waiting period.",
+      "last_verified": "2026-05-09"
+    },
+    "NY": {
+      "status": "legal",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": null,
+      "in_person_required": false,
+      "summary": "Legal through 24 weeks; after 24 weeks when necessary for health of patient. No mandatory waiting period. Telehealth medication abortion permitted.",
+      "last_verified": "2026-05-09"
+    },
+    "OR": {
+      "status": "legal",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": null,
+      "in_person_required": false,
+      "summary": "No gestational limit or mandatory waiting period. Measure 111 (2022) enshrined abortion access in the state constitution.",
+      "last_verified": "2026-05-09"
+    },
+    "PA": {
+      "status": "legal",
+      "gestational_limit_weeks": 24,
+      "waiting_period_hours": 24,
+      "in_person_required": true,
+      "summary": "Legal through 24 weeks. 24-hour mandatory waiting period. In-person visit required.",
+      "last_verified": "2026-05-09"
+    },
+    "PR": {
+      "status": "legal",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": null,
+      "in_person_required": false,
+      "summary": "Legal through viability. No mandatory waiting period.",
+      "last_verified": "2026-05-09"
+    },
+    "RI": {
+      "status": "legal",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": null,
+      "in_person_required": false,
+      "summary": "Legal through viability; after viability when necessary for health of patient. No mandatory waiting period.",
+      "last_verified": "2026-05-09"
+    },
+    "VA": {
+      "status": "legal",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": null,
+      "in_person_required": false,
+      "summary": "Legal through the second trimester. Third trimester permitted when necessary for health of patient. No mandatory waiting period.",
+      "last_verified": "2026-05-09"
+    },
+    "VT": {
+      "status": "legal",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": null,
+      "in_person_required": false,
+      "summary": "Article 22 of the state constitution (2022) guarantees personal reproductive autonomy. No gestational limit or waiting period.",
+      "last_verified": "2026-05-09"
+    },
+    "WA": {
+      "status": "legal",
+      "gestational_limit_weeks": null,
+      "waiting_period_hours": null,
+      "in_person_required": false,
+      "summary": "Legal through viability. No mandatory waiting period. Telehealth medication abortion permitted.",
+      "last_verified": "2026-05-09"
+    }
+  }
+}

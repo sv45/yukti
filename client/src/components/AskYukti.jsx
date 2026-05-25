@@ -1,11 +1,8 @@
 // Right rail — Ask Yukti chat panel.
-// Ported from design_handoff_yukti/design_files/components/AskYukti.jsx
-// Adapted from window globals to ES module. Mock answers used until RAG is wired.
 
 import React, { useState, useRef, useEffect } from 'react';
-import { REFS } from '../data/refs';
 
-export default function AskYukti({ context, pendingPrompt, onPromptConsumed }) {
+export default function AskYukti({ context, pathway, institution, pendingPrompt, onPromptConsumed, onClose, onBotMessage }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -23,18 +20,36 @@ export default function AskYukti({ context, pendingPrompt, onPromptConsumed }) {
     if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
   }, [messages, busy]);
 
-  const sendMessage = (text) => {
+  const sendMessage = async (text) => {
     if (!text || !text.trim()) return;
     const userMsg = { role: "user", text: text.trim() };
     setMessages(prev => [...prev, userMsg]);
     setBusy(true);
     setInput("");
-    // Mock RAG response — replace with real API call when backend is wired.
-    setTimeout(() => {
-      const ans = mockAnswer(text, context);
-      setMessages(prev => [...prev, { role: "bot", text: ans.text, sources: ans.sources }]);
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: text.trim(),
+          context: JSON.stringify(context),
+          pathway: pathway || "",
+          institution: institution || "",
+        }),
+      });
+      if (!res.ok) throw new Error(`Server error ${res.status}`);
+      const data = await res.json();
+      setMessages(prev => [...prev, { role: "bot", text: data.response, sources: data.sources || [] }]);
+    } catch (err) {
+      setMessages(prev => [...prev, {
+        role: "bot",
+        text: "Unable to reach the Yukti server. Ensure the backend is running on port 8000.",
+        sources: [],
+      }]);
+    } finally {
       setBusy(false);
-    }, 700);
+      onBotMessage && onBotMessage();
+    }
   };
 
   const suggestions = [
@@ -55,9 +70,14 @@ export default function AskYukti({ context, pendingPrompt, onPromptConsumed }) {
   return (
     <aside className="rail">
       <header className="rail__hd">
-        <div className="rail__title">
-          <span className="rail__title-dot" />
-          Ask Yukti
+        <div style={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
+          <div className="rail__title">
+            <span className="rail__title-dot" />
+            Ask Yukti
+          </div>
+          {onClose && (
+            <button onClick={onClose} aria-label="Close" style={{background:"none", border:"none", cursor:"pointer", padding:"4px 6px", color:"var(--yk-ink-500)", fontSize:"18px", lineHeight:1}}>✕</button>
+          )}
         </div>
         <div className="rail__sub">Responses drawn only from approved guidelines</div>
       </header>
@@ -93,30 +113,11 @@ export default function AskYukti({ context, pendingPrompt, onPromptConsumed }) {
               <div>{m.text}</div>
               {m.sources && m.sources.length > 0 && (
                 <div className="msg__sources">
-                  {m.sources.map(srcId => {
-                    const idx = REFS.findIndex(r => r.id === srcId);
-                    if (idx < 0) return null;
-                    const ref = REFS[idx];
-                    return (
-                      <a
-                        key={srcId}
-                        href={`#ref-${srcId}`}
-                        className="msg__chip"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          const el = document.getElementById(`ref-${srcId}`);
-                          if (el) {
-                            const top = el.getBoundingClientRect().top + window.scrollY - 120;
-                            window.scrollTo({ top, behavior: "smooth" });
-                            el.classList.add("refs__item--target");
-                            setTimeout(() => el.classList.remove("refs__item--target"), 1800);
-                          }
-                        }}
-                      >
-                        [{idx + 1}] {ref.src.split(",")[0]}
-                      </a>
-                    );
-                  })}
+                  {m.sources.map((src, i) => (
+                    <span key={i} className="msg__chip" title={`Score: ${src.score != null ? (src.score * 100).toFixed(0) + "%" : "—"}`}>
+                      {src.filename || src}
+                    </span>
+                  ))}
                 </div>
               )}
             </div>
@@ -163,45 +164,3 @@ export default function AskYukti({ context, pendingPrompt, onPromptConsumed }) {
   );
 }
 
-// Mock answer generator — wires citations to ref ids.
-// Replace with real RAG API call when backend is ready.
-function mockAnswer(prompt, ctx) {
-  const p = prompt.toLowerCase();
-  if (p.includes("rhogam") || p.includes("rh ")) {
-    return {
-      text: `For an Rh(D)-negative patient with first-trimester bleeding or confirmed EPL, NYP Queens stocks 300mcg IM RhoGAM (the 50mcg mini-dose was discontinued 2024). Administer within 72 hours of bleeding onset. SMFM 2024 supports this dosing for any EPL ≥7 weeks GA.`,
-      sources: ["smfm-rh-2024", "yukti-local-rh"],
-    };
-  }
-  if (p.includes("expectant") || p.includes("medical") || p.includes("surgical")) {
-    return {
-      text: `All three management options are first-line for hemodynamically stable patients in the first trimester. Mifepristone 200mg PO followed 24–48h later by misoprostol 800mcg PV achieves complete expulsion in ~84% by day 8, vs ~67% with misoprostol alone (Schreiber NEJM 2018). Surgical aspiration is preferred for instability, infection, heavy bleeding, or patient preference for definitive management.`,
-      sources: ["acog-200-2018", "schreiber-pregloss-2018", "rcog-gtg17"],
-    };
-  }
-  if (p.includes("hcg") || p.includes("repeat")) {
-    return {
-      text: `A single β-hCG rarely diagnoses ectopic or EPL on its own. The 48h trend is more useful: a rise of ≥49% suggests a viable IUP, plateau or suboptimal rise raises concern for ectopic or failure, and a falling value is consistent with resolving EPL but does not exclude ectopic.`,
-      sources: ["acog-200-2018", "acog-tubal-2018"],
-    };
-  }
-  if (p.includes("sru") || p.includes("criteria") || p.includes("nonviab")) {
-    return {
-      text: `SRU 2013 (Doubilet et al.) criteria for definitive nonviability: CRL ≥7mm with no cardiac activity; mean sac diameter ≥25mm with no embryo; absence of embryo with heartbeat ≥2 weeks after a scan showed sac without yolk sac; or ≥11 days after a scan showed sac with yolk sac. Anything less is suggestive — repeat TVUS in 7–14 days.`,
-      sources: ["doubilet-2013"],
-    };
-  }
-  if (p.includes("red flag") || p.includes("discharge") || p.includes("return")) {
-    return {
-      text: `Discharge instructions should include: heavy bleeding (>2 pads/hr for 2h), fever >38°C, severe or worsening pelvic pain, syncope, or signs of infection. Confirm reliable phone access and OB/Gyn follow-up within 7 days. RhoGAM if Rh-negative; written misoprostol instructions if medical management.`,
-      sources: ["acog-200-2018", "yukti-local-referral"],
-    };
-  }
-  const gaStr = (ctx.gaWeeks != null || ctx.gaDays != null)
-    ? `${ctx.gaWeeks ?? 0}w${ctx.gaDays ?? 0}d GA`
-    : "GA pending";
-  return {
-    text: `Based on the active pathway: ${gaStr}, ${ctx.rhStatus || "Rh status unknown"}, ${ctx.hemoStatus || "stable"}. I can compare management options, walk through SRU criteria, surface the local RhoGAM protocol, or pull discharge red flags. Try one of the suggested questions.`,
-    sources: ["acog-200-2018"],
-  };
-}

@@ -6,7 +6,7 @@ embeds with sentence-transformers, and stores in ChromaDB.
 
 Usage:
     python ingest.py
-    python ingest.py --source-type institutional_protocol --institution nypq --pathway epl
+    python ingest.py --source-type institutional_protocol --institution memorial --pathway epl
 """
 
 import argparse
@@ -102,8 +102,15 @@ def ingest(
     source_type: str,
     institution: str | None = None,
     pathways: list[str] | None = None,
+    source: str = "",
+    regimen: str = "",
+    file_arg: str | None = None,
 ):
-    """Ingest all documents in the documents/ folder into ChromaDB."""
+    """Ingest documents into ChromaDB.
+
+    If file_arg is given, only that file is processed; otherwise all files in
+    documents/ are processed.
+    """
 
     if source_type not in VALID_SOURCE_TYPES:
         raise ValueError(f"source_type must be one of {VALID_SOURCE_TYPES}")
@@ -127,10 +134,16 @@ def ingest(
 
     # Discover documents
     supported_extensions = {".pdf", ".txt"}
-    doc_paths = [
-        p for p in DOCUMENTS_DIR.iterdir()
-        if p.is_file() and p.suffix.lower() in supported_extensions
-    ]
+    if file_arg:
+        file_path = Path(file_arg)
+        if not file_path.is_absolute():
+            file_path = DOCUMENTS_DIR / file_path
+        doc_paths = [file_path]
+    else:
+        doc_paths = [
+            p for p in DOCUMENTS_DIR.iterdir()
+            if p.is_file() and p.suffix.lower() in supported_extensions
+        ]
 
     if not doc_paths:
         print(f"No documents found in {DOCUMENTS_DIR}. Nothing ingested.")
@@ -158,8 +171,10 @@ def ingest(
             {
                 "source_filename": doc_path.name,
                 "source_type": source_type,
+                "source": source,
                 "institution": institution or "",
                 "pathways": ",".join(pathway_list),
+                "regimen": regimen,
                 "date_ingested": date_ingested,
                 "chunk_index": i,
             }
@@ -194,7 +209,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--institution",
         default=None,
-        help="Institution ID (e.g. nypq) — required for institutional_protocol",
+        help="Institution ID (e.g. memorial) — required for institutional_protocol",
     )
     parser.add_argument(
         "--pathway",
@@ -202,6 +217,21 @@ if __name__ == "__main__":
         choices=list(VALID_PATHWAYS),
         default=[],
         help="One or more clinical pathways these documents cover",
+    )
+    parser.add_argument(
+        "--source",
+        default="",
+        help="Short identifier for the document source (e.g. cdc-mec, access-bridge)",
+    )
+    parser.add_argument(
+        "--regimen",
+        default="",
+        help="Clinical regimen identifier (e.g. mifepristone-misoprostol, misoprostol-only)",
+    )
+    parser.add_argument(
+        "--file",
+        default=None,
+        help="Ingest only this specific file (absolute or relative to documents/ dir). If omitted, all files in documents/ are processed.",
     )
     args = parser.parse_args()
 
@@ -212,4 +242,7 @@ if __name__ == "__main__":
         source_type=args.source_type,
         institution=args.institution,
         pathways=args.pathway,
+        source=args.source,
+        regimen=args.regimen,
+        file_arg=args.file,
     )

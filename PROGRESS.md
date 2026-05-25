@@ -329,3 +329,37 @@ python knowledge_base/ingest.py --source-type institutional_protocol --instituti
 Backend: http://localhost:8000
 Frontend: http://localhost:3000
 API docs (auto-generated): http://localhost:8000/docs
+## Session 2 Updates — 2026-04-28
+
+### Entry Screen
+- Full-screen sage background, logo + title + italic subtitle
+- State dropdown → if NY selected, confirmation prompt for Memorial Hospital
+- No institution = national guidelines only
+- All NYPQ references removed; institution is now Memorial Hospital (New York, NY)
+
+### Header
+- Sage background
+- Logo flush (no circle)
+- Displays state; institution only if confirmed
+
+### EPL Pathway Changes
+- Rh status moved to its own collapsible section after β-hCG
+- β-hCG section renamed to 'β-hCG Trend' (β symbol)
+- 'Findings' renamed to 'Ultrasonographic Findings'
+- US Impression added as vertical radio list (6 options):
+  Not yet performed / IUP / Definitive EPL / PUL / Ectopic / Other
+- US fields cascade and grey out based on impression selected
+
+### Architecture Decisions
+- Tabs: EPL, PUL/Ectopic, Medication Abortion, Contraception & EC
+- PUL is a diagnostic state that merges EPL, ectopic, MAB pathways
+- US Impression field is the routing pivot point within EPL tab
+- If PUL or Ectopic selected → nudge to correct tab with context carried
+- Presentation-first workflow (chief complaint → findings → diagnosis)
+
+### Still To Build
+- US impression outcomes (all 6 need proper dynamic behavior)
+- Management accordion (Expectant / Medical / Surgical)
+- Wire AskYukti to /api/chat
+- Disclaimer modal
+- Remaining pathway tabs
