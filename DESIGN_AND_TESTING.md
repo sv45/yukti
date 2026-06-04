@@ -245,6 +245,37 @@ push to `main` — backend pytest suite and frontend Jest suite.
 **Auto-deploy:** Both Vercel and Render are connected to the GitHub repo and redeploy
 automatically on push to `main`.
 
+### Deployment architecture decision: cloud vs on-premises
+
+**Recommendation: cloud deployment.**
+
+Yukti is deployed entirely on cloud infrastructure and this is the recommended approach
+for any production use. The rationale:
+
+- **Accessibility:** ED physicians need access from any device, any shift. Cloud
+  deployment provides a stable public URL accessible from hospital workstations, tablets,
+  and phones without VPN or institutional setup.
+- **Maintenance:** A Python backend running sentence-transformers (a ~400MB ML model)
+  requires consistent compute resources. Cloud platforms manage uptime, restarts, and
+  scaling automatically.
+- **Cost at current scale:** The current deployment uses Render's Starter plan ($7/month)
+  for the backend and Vercel's free tier for the frontend — total cost under $10/month.
+  This is appropriate for a prototype or small-team deployment.
+
+### Deployment cost comparison
+
+| Option | Platform | Monthly cost | Notes |
+|--------|----------|-------------|-------|
+| **Current (prototype)** | Render Starter + Vercel Free | ~$7/month | 512MB RAM; suitable for demo and low traffic |
+| **Small production** | Render Standard + Vercel Free | ~$25/month | 2GB RAM; handles concurrent users reliably |
+| **Institutional/scaled** | AWS EC2 t3.medium + S3 + CloudFront | ~$40–80/month | Full control, persistent storage, scalable |
+| **On-premises** | Hospital server | High upfront + IT overhead | HIPAA-compliant infrastructure; appropriate for patient data integration |
+
+**For a validated clinical tool handling real patient data**, on-premises or a
+HIPAA-compliant cloud environment (AWS GovCloud, Azure Government) would be required.
+The current cloud deployment is appropriate for demonstration and educational purposes
+only, consistent with the tool's prototype status.
+
 ---
 
 ## 6. Knowledge base
