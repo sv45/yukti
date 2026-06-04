@@ -189,7 +189,7 @@ export default function PULEctopicTab({ onSwitchTab, entryState = '', legalStatu
     return () => mq.removeEventListener('change', h);
   }, []);
   const pulMobileStep = !sec1Done ? 1 : !sec2Done ? 2 : !sec3Done ? 3 : 4;
-  const pulMobileLabels = ['Initial Exam', 'Baseline hCG', 'Ultrasound Findings', 'Clinical Assessment'];
+  const pulMobileLabels = ['Initial Exam', 'Baseline hCG', 'Ultrasound Findings'];
   const pulDoneCount = [sec1Done, sec2Done, sec3Done].filter(Boolean).length;
   const PulMarkDone = ({ eligibilityOk, done, onDone }) => {
     if (done || !eligibilityOk) return null;
@@ -852,7 +852,7 @@ export default function PULEctopicTab({ onSwitchTab, entryState = '', legalStatu
           )}
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: '13.5px', fontWeight: 700, color: 'var(--yk-ink-800)' }}>
-              {pulMobileStep <= 4 ? `Step ${pulMobileStep} of 4 — ${pulMobileLabels[pulMobileStep - 1]}` : 'Complete'}
+              {pulMobileStep <= 3 ? `Step ${pulMobileStep} of 3 — ${pulMobileLabels[pulMobileStep - 1]}` : 'Clinical Assessment'}
             </div>
             <div style={{ marginTop: '6px', height: '4px', width: '100%', maxWidth: '240px', background: 'var(--yk-ink-150)', borderRadius: '2px', overflow: 'hidden' }}>
               <div style={{ height: '100%', borderRadius: '2px', width: `${(pulDoneCount / 3) * 100}%`, background: '#10B981', transition: 'width 0.35s ease' }} />

@@ -48,23 +48,6 @@ def health_check():
     return {"status": "ok", "app": "Yukti"}
 
 
-@app.get("/api/debug-kb")
-def debug_kb():
-    import chromadb
-    from pathlib import Path
-    base = Path(__file__).parent / "knowledge_base" / "chroma_db"
-    exists = base.exists()
-    collections = []
-    count = 0
-    try:
-        client = chromadb.PersistentClient(path=str(base))
-        collections = [c.name for c in client.list_collections()]
-        if collections:
-            col = client.get_collection(collections[0])
-            count = col.count()
-    except Exception as e:
-        return {"chroma_dir": str(base), "exists": exists, "error": str(e)}
-    return {"chroma_dir": str(base), "exists": exists, "collections": collections, "count": count}
 
 
 MANAGEMENT_QUERIES = {
