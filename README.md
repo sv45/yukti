@@ -15,6 +15,7 @@ clinical pathway, surfacing guideline-based recommendations with their sources a
 
 - **App:** https://yukti-blue.vercel.app
 - **Backend API:** https://yukti-api.onrender.com
+- **Trello board:** https://trello.com/b/IsTF1aZL/yukti
 
 ## What it does
 
