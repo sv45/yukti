@@ -588,9 +588,16 @@ export default function ContraceptionPathway({ state, setState, onAsk, instituti
     ecDetail = "Recommend waiting 5 days after Ella before starting hormonal contraception.";
     ecUsedElla = true;
   } else if (s.cxTimeUps === "le72" && s.cxWantsSameDayHormonal === "yes") {
-    ecPrimary = "Plan B (levonorgestrel 1.5mg PO ×1)";
-    ecBand = <RiskBand level="low">Start today</RiskBand>;
-    ecDetail = "Patient may initiate hormonal contraception immediately.";
+    if (s.cxWeightGe75 === "yes") {
+      ecPrimary = "Ella (ulipristal 30mg PO ×1)";
+      ecBand = <RiskBand level="info">Preferred ≥75kg</RiskBand>;
+      ecDetail = "Levonorgestrel is less effective at ≥75kg — ella is preferred. Wait 5 days after ella before starting hormonal contraception.";
+      ecUsedElla = true;
+    } else {
+      ecPrimary = "Plan B (levonorgestrel 1.5mg PO ×1)";
+      ecBand = <RiskBand level="low">Start today</RiskBand>;
+      ecDetail = "Patient may initiate hormonal contraception immediately.";
+    }
   } else if (s.cxTimeUps === "le72" && s.cxWantsSameDayHormonal === "no") {
     ecPrimary = "Ella preferred (ulipristal 30mg PO ×1)";
     ecBand = <RiskBand level="info">Rx required</RiskBand>;
