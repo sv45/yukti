@@ -1,37 +1,52 @@
-# Yukti — Reproductive Health Clinical Decision Support for Emergency Medicine
+# Yukti
 
-Yukti is a clinical decision support web application designed for emergency medicine physicians managing reproductive health cases in the ED. All AI responses are grounded exclusively in an approved knowledge base of clinical guidelines — eliminating hallucinations and ensuring every recommendation is traceable to a vetted source.
+**Reproductive Health Clinical Decision Support for Emergency Medicine**
 
-**Live app:** https://yukti-blue.vercel.app  
-**API:** https://yukti-api.onrender.com
+Yukti is a clinical decision support tool for emergency department clinicians managing
+early pregnancy presentations. A clinician enters what they know about a patient (dating,
+ultrasound findings, clinical picture), and Yukti guides them through the relevant
+clinical pathway, surfacing guideline-based recommendations with their sources attached.
 
----
+> **Disclaimer:** Yukti is a decision-support prototype for educational/demonstration
+> purposes. It is **not clinically validated**, is not an approved clinical device, and is
+> not a substitute for clinical judgment.
 
-## Clinical Pathways
+## Live application
 
-- **Early Pregnancy Loss (EPL)** — gestational age, ultrasound findings (SRU 2013 criteria), Rh status, management selection (expectant / medical / surgical), aftercare
-- **Pregnancy of Unknown Location & Ectopic** — rupture risk, hCG interpretation, discriminatory zone assessment, ectopic workup
-- **Medication Abortion (MAB)** — eligibility, contraindications, Rh status, PUL management (Goldberg 2022)
-- **Contraception & Emergency Contraception** — same-day initiation, CDC US MEC, weight-based EC recommendation
-- **REMS Certification** — mifepristone REMS workflow
+- **App:** https://yukti-blue.vercel.app
+- **Backend API:** https://yukti-api.onrender.com
 
-**Ask Yukti** — RAG-based AI chat grounded in 15+ clinical guidelines (ACOG, ACCESS-Bridge, CDC, SRU 2013, SMFM). Will not answer outside approved sources.
+## What it does
 
----
+Five clinical decision support pathways for early pregnancy management in the ED:
 
-## Tech Stack
+1. Early Pregnancy Loss (EPL)
+2. Pregnancy of Unknown Location & Ectopic
+3. Medication Abortion (MAB)
+4. Contraception & Emergency Contraception
+5. REMS Certification
+
+Key capabilities:
+
+- **Ask Yukti** — a retrieval-augmented (RAG) assistant grounded in ACOG, ACCESS-Bridge,
+  CDC, SRU 2013 and other guidelines; it will not answer outside its approved sources.
+- **SRU 2013 nonviability criteria** derived automatically from ultrasound measurements.
+- **hCG interpretation** using validated thresholds (Barnhart 2004, ACCESS-Bridge).
+- **State-law integration** — abortion legality status by state, pulled into the clinical
+  context.
+- **Mobile-optimized wizard flow** — one step at a time on small screens.
+
+## Tech stack
 
 | Layer | Technology |
 |-------|-----------|
 | Frontend | React (Create React App), Vercel |
-| Backend | FastAPI + Uvicorn, Render |
-| AI | Claude Sonnet (Anthropic API) |
-| Vector DB | ChromaDB + sentence-transformers (all-MiniLM-L6-v2) |
-| State law | KFF / Guttmacher data |
+| Backend | FastAPI + Uvicorn (Python), Render |
+| AI assistant | Claude (Anthropic API), RAG architecture |
+| Vector database | ChromaDB + sentence-transformers (all-MiniLM-L6-v2) |
+| Knowledge base | 15+ clinical guidelines, 552 document chunks |
 
----
-
-## Local Setup
+## Running locally
 
 ### Prerequisites
 - Python 3.11+
@@ -44,7 +59,7 @@ Yukti is a clinical decision support web application designed for emergency medi
 ```bash
 cd server
 pip install -r requirements.txt
-# create .env with ANTHROPIC_API_KEY and GOOGLE_PLACES_API_KEY
+# create a .env file with ANTHROPIC_API_KEY and GOOGLE_PLACES_API_KEY
 uvicorn main:app --reload --port 8000
 ```
 
@@ -53,30 +68,27 @@ uvicorn main:app --reload --port 8000
 ```bash
 cd client
 npm install
-npm start   # runs on http://localhost:3000 (proxies /api to port 8000)
+npm start   # runs on http://localhost:3000, proxies /api/* to port 8000
 ```
-
----
 
 ## Testing
 
-### Backend (pytest)
+44 automated tests, all passing:
+
 ```bash
+# Backend (pytest)
 cd server
-python3 -m pytest tests/ -v
-# 22 tests: 12 API endpoint tests + 10 knowledge base retrieval tests
-```
+python3 -m pytest tests/test_api.py        # 12 API endpoint tests
+python3 -m pytest tests/test_retrieve.py   # 10 knowledge-base retrieval tests
 
-### Frontend (Jest)
-```bash
+# Frontend (Jest)
 cd client
-CI=true npm test -- --watchAll=false
-# 22 tests: SRU 2013 criteria, hCG thresholds, EC weight logic
+CI=true npm test -- --watchAll=false       # 22 clinical-logic unit tests
 ```
 
----
+See `DESIGN_AND_TESTING.md` for the full design rationale and testing methodology.
 
-## Project Structure
+## Project structure
 
 ```
 yukti/
@@ -98,18 +110,14 @@ yukti/
   DESIGN_AND_TESTING.md     Design and testing documentation
 ```
 
----
-
 ## Deployment
 
 - **Backend**: Render Web Service — auto-deploys on push to `main`
 - **Frontend**: Vercel — auto-deploys on push to `main`, proxies `/api/*` to Render
 
----
+## Known limitations
 
-## Limitations
-
-- Not clinically validated for patient care
-- Knowledge base limited to ingested guideline documents
-- No EHR integration
-- Intended as a decision support aid — does not replace clinical judgment
+- Not clinically validated.
+- Knowledge base limited to ingested documents.
+- No EHR integration.
+- No multi-provider workflow.
