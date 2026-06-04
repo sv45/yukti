@@ -84,7 +84,8 @@ def test_chat_returns_response_structure():
     mock_message = MagicMock()
     mock_message.content = [MagicMock(text="Early pregnancy loss occurs in 10% of pregnancies.")]
 
-    with patch("main.retrieve", return_value=mock_chunks), \
+    with patch.dict(os.environ, {"ANTHROPIC_API_KEY": "test-key"}), \
+         patch("main.retrieve", return_value=mock_chunks), \
          patch("main.anthropic.Anthropic") as mock_anthropic:
         mock_anthropic.return_value.messages.create.return_value = mock_message
         response = client.post("/api/chat", json={
