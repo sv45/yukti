@@ -26,6 +26,9 @@ jobs:
           pip install pytest httpx pytest-asyncio
 
       - name: Run API tests
+        env:
+          ANTHROPIC_API_KEY: test-key-for-ci
+          GOOGLE_PLACES_API_KEY: test-key-for-ci
         run: |
           cd server
           python3 -m pytest tests/test_api.py -v
