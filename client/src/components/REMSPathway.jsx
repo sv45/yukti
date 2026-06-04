@@ -82,23 +82,37 @@ function LinkButton({ href, children, color = "#2563EB" }) {
 }
 
 function StepCheckbox({ done, onChange }) {
+  if (!done) return null;
   return (
-    <label
-      style={{ display: "flex", alignItems: "center", gap: "7px", cursor: "pointer", userSelect: "none" }}
-      onClick={e => e.stopPropagation()}
-    >
-      <span style={{
-        width: "26px", height: "26px", borderRadius: "50%", border: `2px solid ${done ? "#10B981" : "var(--yk-ink-250, #ccc)"}`,
-        background: done ? "#10B981" : "white", display: "flex", alignItems: "center", justifyContent: "center",
-        transition: "all 0.2s", flexShrink: 0,
-      }}>
-        {done && <span style={{ color: "white", fontSize: "14px", lineHeight: 1 }}>✓</span>}
+    <label style={{ display: "flex", alignItems: "center", gap: "7px", cursor: "pointer", userSelect: "none" }} onClick={e => e.stopPropagation()}>
+      <span style={{ width: "22px", height: "22px", borderRadius: "50%", background: "#10B981", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <span style={{ color: "white", fontSize: "13px", lineHeight: 1 }}>✓</span>
       </span>
-      <input type="checkbox" checked={done} onChange={onChange} style={{ display: "none" }} />
-      <span style={{ fontSize: "12px", color: done ? "#10B981" : "var(--yk-ink-400)", fontWeight: done ? 600 : 400 }}>
-        {done ? "Done" : "Mark done"}
-      </span>
+      <input type="checkbox" checked onChange={onChange} style={{ display: "none" }} />
+      <span style={{ fontSize: "12px", color: "#10B981", fontWeight: 600 }}>Done</span>
     </label>
+  );
+}
+
+function MarkDoneBar({ done, onDone }) {
+  if (done) return null;
+  return (
+    <div style={{ borderTop: "1px solid var(--yk-ink-100, #f3f4f6)", padding: "12px 20px", background: "var(--yk-sage-50, #F0FDF4)", display: "flex", justifyContent: "flex-end" }}>
+      <button onClick={onDone} style={{
+        appearance: "none", cursor: "pointer", fontFamily: "inherit",
+        display: "inline-flex", alignItems: "center", gap: "8px",
+        padding: "9px 20px", borderRadius: "6px",
+        background: "var(--yk-sage-500)", border: "none",
+        fontSize: "13px", fontWeight: 700, color: "white",
+        boxShadow: "0 1px 4px rgba(0,0,0,0.12)",
+      }}>
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <circle cx="7" cy="7" r="6" stroke="white" strokeWidth="1.5" />
+          <path d="M4 7l2.2 2.2L10 5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        Mark step done
+      </button>
+    </div>
   );
 }
 
@@ -257,9 +271,22 @@ export default function REMSPathway({ entryState = "", legalStatus = null }) {
                 <span style={{ marginRight: "6px" }}>{icon}</span>{legalText}
               </p>
             )}
+            {legalText && legalStatus.sources?.length > 0 && (
+              <p style={{ margin: "5px 0 0", fontSize: "11px", color, opacity: 0.75 }}>
+                {legalStatus.last_verified && <span>Last verified: {legalStatus.last_verified} · </span>}
+                Sources: {legalStatus.sources.map((url, i) => (
+                  <span key={i}>
+                    {i > 0 && " · "}
+                    <a href={url} target="_blank" rel="noopener noreferrer" style={{ color: "inherit" }}>
+                      {url.includes("kff.org") ? "KFF" : url.includes("guttmacher") ? "Guttmacher Institute" : "Center for Reproductive Rights"}
+                    </a>
+                  </span>
+                ))}
+              </p>
+            )}
             {!allDone && (
               <p style={{ margin: legalText ? "8px 0 0" : "0", fontSize: "13px", color: legalText ? color : "#78350F", lineHeight: "1.5" }}>
-                <span style={{ marginRight: "6px" }}>⚠</span><strong>Not yet certified?</strong> Consult OB/GYN on call, or use misoprostol alone (no REMS required).
+                <span style={{ marginRight: "6px" }}>⚠</span><strong>Not yet REMS certified?</strong> Consult OB/GYN on call, or use misoprostol alone (no REMS required).
               </p>
             )}
           </div>
@@ -337,6 +364,7 @@ export default function REMSPathway({ entryState = "", legalStatus = null }) {
           sub="Register with your manufacturer's REMS portal."
           headerRight={<StepCheckbox done={!!stepDone[2]} onChange={() => toggleStep(2)} />}
           collapsed={!!stepDone[2]}
+          footer={<MarkDoneBar done={!!stepDone[2]} onDone={() => toggleStep(2)} />}
         >
           <div style={{ padding: "14px 20px 20px" }}>
             {/* Formulary callout */}
@@ -384,6 +412,7 @@ export default function REMSPathway({ entryState = "", legalStatus = null }) {
           sub="Required for every patient before dispensing mifepristone."
           headerRight={<StepCheckbox done={!!stepDone[3]} onChange={() => toggleStep(3)} />}
           collapsed={!!stepDone[3]}
+          footer={<MarkDoneBar done={!!stepDone[3]} onDone={() => toggleStep(3)} />}
         >
           <div style={{ padding: "14px 20px 20px" }}>
             <p style={{ margin: "0 0 14px", fontSize: "13.5px", color: "var(--yk-ink-700)", lineHeight: "1.65" }}>
@@ -402,6 +431,7 @@ export default function REMSPathway({ entryState = "", legalStatus = null }) {
           sub="Not all pharmacies carry mifepristone — verify availability before sending."
           headerRight={<StepCheckbox done={!!stepDone[4]} onChange={() => toggleStep(4)} />}
           collapsed={!!stepDone[4]}
+          footer={<MarkDoneBar done={!!stepDone[4]} onDone={() => toggleStep(4)} />}
         >
           <div style={{ padding: "14px 20px 20px" }}>
             <div style={{

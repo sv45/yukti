@@ -8,6 +8,8 @@ import EPLPathway from './components/EPLPathway';
 import ContraceptionPathway from './components/ContraceptionPathway';
 import MedicationAbortionPathway from './components/MedicationAbortionPathway';
 import REMSPathway from './components/REMSPathway';
+import PULEctopicTab from './components/PULEctopicTab';
+import EntryPresentation from './components/EntryPresentation';
 import { REFS } from './data/refs';
 import logoUrl from './assets/yukti-logo.png';
 
@@ -41,11 +43,21 @@ const US_STATES = [
 ];
 
 const TABS = [
-  { id: "epl",          label: "Early Pregnancy Loss",  live: true  },
-  { id: "med-abortion", label: "Medication Abortion",   live: true  },
-  { id: "contraception",label: "Contraception & Emergency Contraception",    live: true  },
-  { id: "rems",         label: "REMS Certification",    live: true  },
+  { id: "epl",          label: "Early Pregnancy Loss",               live: true },
+  { id: "pul-ectopic",  label: "Pregnancy of Unknown Location & Ectopic", live: true },
+  { id: "med-abortion", label: "Medication Abortion",                 live: true },
+  { id: "contraception",label: "Contraception & Emergency Contraception", live: true },
+  { id: "rems",         label: "REMS Certification",                  live: true },
 ];
+
+// All tabs search the full knowledge base — no pathway filtering
+const PATHWAY_MAP = {
+  "epl":          "",
+  "pul-ectopic":  "",
+  "med-abortion": "",
+  "contraception":"",
+  "rems":         "",
+};
 
 // Refs that belong only to the contraception pathway — excluded from EPL ref list
 const CX_REF_IDS = new Set(["acog-206-2019", "cdc-mec-2024", "fda-planb-2009", "fda-ella-2010", "access-bridge-2025"]);
@@ -60,11 +72,15 @@ const TAB_META = {
   },
   "med-abortion": {
     title: "Medication Abortion",
-    sub: null,
+    sub: "Six-step guided workflow for medication abortion in the emergency department.",
   },
   contraception: {
     title: "Emergency Contraception & Contraception Initiation",
     sub: "EC eligibility, quick start criteria, and method selection.",
+  },
+  "pul-ectopic": {
+    title: "Pregnancy of Unknown Location & Ectopic Pregnancy",
+    sub: null,
   },
   rems: {
     title: "Mifepristone REMS Certification",
@@ -72,28 +88,30 @@ const TAB_META = {
   },
 };
 
-// Institution config — expand when more sites are onboarded
 const INSTITUTIONS = {
-  memorial: { name: "Memorial Hospital", loc: "",          initial: "M" },
-  other: { name: "Other",           loc: "—",            initial: "?" },
+  other: { name: "Other", loc: "—", initial: "?" },
 };
 
 export default function App() {
-  const [entryDone, setEntryDone] = useState(() => sessionStorage.getItem('yk_entryDone') === 'true');
+  const [entryDone,  setEntryDone]  = useState(() => sessionStorage.getItem('yk_entryDone') === 'true');
   const [entryState, setEntryState] = useState(() => sessionStorage.getItem('yk_entryState') || "");
 
   const [tab, setTab] = useState(sessionStorage.getItem('yukti-tab') || 'epl');
   const [institutionId, setInstitutionId] = useState(() => sessionStorage.getItem('yk_institutionId') || "other");
   const [pendingPrompt, setPendingPrompt] = useState(null);
   const [statePickerOpen, setStatePickerOpen] = useState(false);
+  const [mobileTabOpen, setMobileTabOpen] = useState(false);
+  const [refsOpen, setRefsOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [hasUnread, setHasUnread] = useState(false);
   const [railOpen, setRailOpen] = useState(false);
 
   // Patient / pathway state — matches EPLPathway field names exactly
   const [pathway, setPathway] = useState({
-    gaWeeks: null,
-    gaDays: null,
+    lmp: null,
+    usGaWeeks: null,
+    usGaDays: null,
+    mxChoice: null,
     rhStatus: null,
     hemoStatus: null,
     bleedSeverity: null,
@@ -101,7 +119,7 @@ export default function App() {
     pocOs: null,
     // TVUS — impression + orthogonal findings
     usImpression: null,
-    usIUPSeen: null,
+    usYolkSac: null,
     usCardiac: null,
     usCrl: null,
     usNoEmbryo: false,
@@ -130,6 +148,8 @@ export default function App() {
     usReport: "",
     usInterpretation: null,
     remsConfirmed: false,
+    remsSkipped: false,
+    usImpressionUnverified: false,
   });
 
   const [legalStatus, setLegalStatus] = useState(null);
@@ -148,23 +168,72 @@ export default function App() {
       .catch(() => setLegalStatus(null));
   }, [entryState]);
 
+  // Build enriched clinical context for Ask Yukti — adds derived conclusions
+  const buildClinicalContext = () => {
+    const s = pathway;
+    const notes = [];
+
+    // Gestational age
+    const gaW = s.usGaWeeks != null ? s.usGaWeeks : null;
+    const gaD = s.usGaDays != null ? s.usGaDays : 0;
+    if (gaW != null) notes.push(`Gestational age: ${gaW}w ${gaD}d (by ${gaW != null ? "ultrasound" : "LMP"})`);
+
+    // US impression
+    if (s.usImpression) {
+      const impLabel = { iup: "Intrauterine pregnancy", pul: "Pregnancy of unknown location / Indeterminate", ectopic: "Ectopic pregnancy", "definitive-epl": "Definitive EPL (selected)" }[s.usImpression] ?? s.usImpression;
+      notes.push(`Ultrasound impression selected: ${impLabel}`);
+    }
+
+    // SRU 2013 criteria — derive EPL conclusion from measurements
+    const crl = s.usCrl; const msd = s.usMsd; const cardiac = s.usCardiac;
+    const noEmbryo = !!s.usNoEmbryo; const yolkSac = s.usYolkSac;
+
+    if (crl != null && !noEmbryo) notes.push(`CRL: ${crl}mm`);
+    if (msd != null) notes.push(`MSD: ${msd}mm`);
+    if (cardiac) notes.push(`Cardiac activity: ${cardiac}`);
+    if (yolkSac) notes.push(`Yolk sac: ${yolkSac}`);
+    if (noEmbryo) notes.push("No embryo visualized");
+
+    // Derive definitive EPL
+    const derivedEPL = [];
+    if (crl != null && crl >= 7 && cardiac === "absent" && !noEmbryo) derivedEPL.push(`CRL ${crl}mm without cardiac activity (≥7mm threshold met)`);
+    if (msd != null && msd >= 25 && noEmbryo) derivedEPL.push(`MSD ${msd}mm without embryo (≥25mm threshold met)`);
+    if (s.usSinceNoYS === "ge11d") derivedEPL.push("Gestational sac without yolk sac ≥11 days after first scan");
+    if (s.usSinceWithYS === "ge11d") derivedEPL.push("Gestational sac with yolk sac without embryo ≥11 days after scan");
+
+    if (derivedEPL.length > 0) {
+      notes.push(`⚠ DERIVED CLINICAL CONCLUSION: DEFINITIVE EARLY PREGNANCY LOSS (SRU 2013 criteria met): ${derivedEPL.join("; ")}`);
+    }
+
+    // β-hCG
+    if (s.hcg) notes.push(`β-hCG: ${Number(s.hcg).toLocaleString()} mIU/mL${s.hcg48 ? ` → ${Number(s.hcg48).toLocaleString()} mIU/mL at 48h` : ""}`);
+
+    // Clinical status
+    if (s.hemoStatus) notes.push(`Hemodynamic status: ${s.hemoStatus}`);
+    if (s.mxChoice) notes.push(`Management selected: ${s.mxChoice}`);
+
+    return notes.length > 0 ? { ...s, _clinicalSummary: notes.join("\n") } : s;
+  };
+
   const activeRefs = (() => {
     if (tab === "epl") return REFS.filter(r => !CX_REF_IDS.has(r.id));
     if (tab === "contraception") {
-      const ids = new Set(["fda-planb-2009", "fda-ella-2010", "access-bridge-2025"]);
+      const ids = new Set(["fda-planb-2009", "fda-ella-2010", "access-bridge-2025", "cdc-mec-2024"]);
       if (pathway.cxEstrogenCi !== null) {
         ids.add("acog-206-2019");
-        ids.add("cdc-mec-2024");
       }
       return REFS.filter(r => ids.has(r.id));
     }
-    if (tab === "med-abortion") return [];
+    if (tab === "med-abortion") {
+      const ids = new Set(["acog-225-2020","acog-tubal-2018","smfm-rh-2024","goldberg-2022","schreiber-pregloss-2018","genbiopro-mifepristone-2023","rcog-gtg17","barnhart-2011-pul"]);
+      return REFS.filter(r => ids.has(r.id));
+    }
     if (tab === "rems") return [];
     return REFS;
   })();
 
-  const askYukti = (q) => setPendingPrompt(q);
-  const inst = INSTITUTIONS[institutionId] || INSTITUTIONS.memorial;
+  const askYukti = (q) => { setPendingPrompt(q); setRailOpen(true); };
+  const inst = INSTITUTIONS[institutionId] || INSTITUTIONS.other;
   const selectedStateObj = US_STATES.find(s => s.abbr === entryState);
   const locationDisplay = selectedStateObj
     ? institutionId !== "other"
@@ -172,54 +241,97 @@ export default function App() {
       : selectedStateObj.name
     : null;
 
-  function handleEntry(instId) {
-    setInstitutionId(instId);
+  // PROVISIONAL routing — pending clinical review
+  // intention is the primary key; usImpression is the modifier
+  function recommendPathway(intention, impression) {
+    if (impression === "ectopic") {
+      return { tab: "epl", urgent: true,
+        reason: "Suspected ectopic — immediate evaluation required" };
+    }
+    if (impression === "pul") {
+      return { tab: "pul-ectopic", urgent: false,
+        reason: "Pregnancy of unknown location — ectopic must be excluded before further management" };
+    }
+    if (intention === "desired" && impression === "iup") {
+      return { tab: "epl", urgent: false, type: "outpatient",
+        reason: "IUP confirmed with desired pregnancy — outpatient OB follow-up and prenatal vitamins" };
+    }
+    if (intention === "undesired") {
+      if (impression === "iup") {
+        return { tab: "med-abortion", urgent: false,
+          reason: "Undesired pregnancy — medication abortion pathway" };
+      }
+      if (impression === "definitive-epl") {
+        return { tab: "epl", urgent: false,
+          reason: "Pregnancy loss in progress — manage loss before further counseling" };
+      }
+    }
+    return { tab: "epl", urgent: false,
+      reason: intention === "undecided"
+        ? "Evaluate and stabilize before counseling on options"
+        : "Early pregnancy evaluation and management" };
+  }
+
+  function handlePresentation(impression, intention, tab) {
+    setPathway(prev => ({
+      ...prev,
+      usImpression:           impression,
+      usImpressionUnverified: true,
+      cxPregnancyIntention:   intention,
+    }));
+    setTab(tab);
     setEntryDone(true);
   }
 
   // ── Entry screen ──────────────────────────────────────────────────────────
   if (!entryDone) {
+    const directTabs = [
+      { tab: "epl",           label: "Early Pregnancy Loss" },
+      { tab: "pul-ectopic",   label: "Pregnancy of Unknown Location & Ectopic" },
+      { tab: "med-abortion",  label: "Medication Abortion" },
+      { tab: "contraception", label: "Contraception & Emergency Contraception" },
+    ];
     return (
       <div className="entry">
         <div className="entry__content">
           <img src={logoUrl} alt="Yukti" className="entry__logo" />
           <div className="entry__wordmark">yukti</div>
           <p className="entry__tagline">Clinical decision support for reproductive health concerns in the ED</p>
-
-          <div className="entry__form">
-            <label className="entry__label" htmlFor="entry-state">Select your state</label>
-            <select
-              id="entry-state"
-              className="entry__select"
-              value={entryState}
-              onChange={e => setEntryState(e.target.value)}
+          <EntryPresentation
+            recommendPathway={recommendPathway}
+            onConfirm={handlePresentation}
+            onSkip={(tab) => { setTab(tab); setEntryDone(true); }}
+            entryState={entryState}
+            setEntryState={setEntryState}
+            US_STATES={US_STATES}
+            institutionId={institutionId}
+            setInstitutionId={setInstitutionId}
+          />
+        </div>
+        {/* Bottom pathway bar */}
+        <div style={{
+          position: 'fixed', bottom: 0, left: 0, right: 0,
+          display: 'flex', borderTop: '1px solid rgba(0,0,0,0.12)',
+          background: 'rgba(0,0,0,0.15)', backdropFilter: 'blur(4px)',
+        }}>
+          {directTabs.map((t, i) => (
+            <button
+              key={t.tab}
+              onClick={() => { setTab(t.tab); setEntryDone(true); }}
+              style={{
+                flex: 1, appearance: 'none', background: 'none',
+                border: 'none', borderLeft: i > 0 ? '1px solid rgba(0,0,0,0.12)' : 'none',
+                padding: '11px 8px', fontFamily: 'inherit',
+                fontSize: '12px', fontWeight: 500, color: 'var(--yk-ink-900)',
+                cursor: 'pointer', textAlign: 'center', lineHeight: 1.3,
+                transition: 'background 0.1s',
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.08)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'none'}
             >
-              <option value="">— choose state —</option>
-              {US_STATES.map(s => (
-                <option key={s.abbr} value={s.abbr}>{s.name}</option>
-              ))}
-            </select>
-
-            {entryState === "NY" && (
-              <div className="entry__confirm">
-                <p className="entry__confirm-q">Are you at Memorial Hospital?</p>
-                <div className="entry__confirm-btns">
-                  <button className="entry__btn entry__btn--primary" onClick={() => handleEntry("memorial")}>
-                    Yes — Memorial Hospital
-                  </button>
-                  <button className="entry__btn entry__btn--ghost" onClick={() => handleEntry("other")}>
-                    No, continue
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {entryState && entryState !== "NY" && (
-              <button className="entry__btn entry__btn--primary" onClick={() => handleEntry("other")}>
-                Continue
-              </button>
-            )}
-          </div>
+              {t.label}
+            </button>
+          ))}
         </div>
       </div>
     );
@@ -269,18 +381,6 @@ export default function App() {
                       <option key={s.abbr} value={s.abbr}>{s.name}</option>
                     ))}
                   </select>
-                  {entryState === "NY" && (
-                    <div className="header__loc-inst">
-                      <button
-                        className={`header__loc-inst-btn${institutionId === "memorial" ? " header__loc-inst-btn--active" : ""}`}
-                        onClick={() => { setInstitutionId("memorial"); setStatePickerOpen(false); }}
-                      >Memorial Hospital</button>
-                      <button
-                        className={`header__loc-inst-btn${institutionId === "other" ? " header__loc-inst-btn--active" : ""}`}
-                        onClick={() => { setInstitutionId("other"); setStatePickerOpen(false); }}
-                      >Other</button>
-                    </div>
-                  )}
                 </div>
               </>
             )}
@@ -289,7 +389,8 @@ export default function App() {
       </header>
 
       {/* ── TABS ── */}
-      <nav className="tabs" role="tablist">
+      {/* Desktop tab bar */}
+      <nav className="tabs tabs--desktop" role="tablist">
         {TABS.map(t => (
           <button
             key={t.id}
@@ -306,6 +407,34 @@ export default function App() {
         ))}
       </nav>
 
+      {/* Mobile tab dropdown */}
+      <div className="tabs--mobile">
+        <button className="tabs__mobile-trigger" onClick={() => setMobileTabOpen(o => !o)} aria-expanded={mobileTabOpen}>
+          <span>{TABS.find(t => t.id === tab)?.label}</span>
+          <svg width="12" height="12" viewBox="0 0 10 10" fill="none" aria-hidden="true">
+            <path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+        {mobileTabOpen && (
+          <>
+            <div className="tabs__mobile-backdrop" onClick={() => setMobileTabOpen(false)} />
+            <div className="tabs__mobile-menu">
+              {TABS.map(t => (
+                <button
+                  key={t.id}
+                  className={`tabs__mobile-item${tab === t.id ? ' tabs__mobile-item--active' : ''}`}
+                  onClick={() => { if (t.live) { setTab(t.id); setMobileTabOpen(false); } }}
+                  disabled={!t.live}
+                >
+                  {t.label}
+                  {!t.live && <span className="tab__badge">Soon</span>}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+
       {/* ── BODY ── */}
       <main className={`body${chatOpen ? " chat-open" : ""}${!railOpen ? " rail-collapsed" : ""}`}>
 
@@ -317,30 +446,23 @@ export default function App() {
               {(TAB_META[tab]?.sub) && <p className="cds__sub">{TAB_META[tab].sub}</p>}
             </div>
             {!railOpen && (
-              <button className="chat-reopen" onClick={() => setRailOpen(true)} aria-label="Open Ask Yukti">
+              <button className="chat-reopen" onClick={() => { setRailOpen(true); setHasUnread(false); }} aria-label="Open Ask Yukti">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
                 </svg>
-                Chat
+                Ask Yukti
+                {hasUnread && <span className="chat-reopen__dot" />}
               </button>
             )}
           </div>
 
-          {/* Local protocol banner — only shown when a specific institution is confirmed */}
-          {institutionId !== "other" && <div className="local-banner">
-            <span className="local-banner__left">
-              <span className="local-banner__icon">{inst.initial}</span>
-              <span>
-                <span className="local-banner__name">{inst.name}</span>
-                {" protocol · "}
-                {LOCAL_ADAPTATION_COUNT} local adaptation{LOCAL_ADAPTATION_COUNT !== 1 ? "s" : ""}
-              </span>
-            </span>
-            <button className="local-banner__link" onClick={() => {}}>View differences</button>
-          </div>}
 
           {tab === "epl" && (
             <EPLPathway state={pathway} setState={setPathway} onAsk={askYukti} onSwitchTab={setTab} />
+          )}
+
+          {tab === "pul-ectopic" && (
+            <PULEctopicTab onSwitchTab={setTab} entryState={entryState} legalStatus={legalStatus} />
           )}
 
           {tab === "med-abortion" && (
@@ -348,33 +470,32 @@ export default function App() {
               selectedState={entryState}
               institutionId={institutionId}
               legalStatus={legalStatus}
+              onSwitchTab={setTab}
+              onAsk={askYukti}
             />
           )}
 
           {tab === "contraception" && (
-            <ContraceptionPathway state={pathway} setState={setPathway} onAsk={askYukti} institutionId={institutionId} />
+            <ContraceptionPathway state={pathway} setState={setPathway} onAsk={askYukti} institutionId={institutionId} onSwitchTab={setTab} />
           )}
 
           {tab === "rems" && <REMSPathway entryState={entryState} legalStatus={legalStatus} />}
 
           {/* References — filtered to active tab/selections; hidden when no refs are active */}
           {activeRefs.length > 0 && <section className="refs" id="references" aria-label="References">
-            <h2 className="refs__hd">References</h2>
-            <ol className="refs__list">
-              {activeRefs.map((r) => {
-                const n = REFS.indexOf(r) + 1;
-                return (
-                  <li className="refs__item" id={`ref-${r.id}`} key={r.id}>
-                    <span style={{ fontVariantNumeric: "tabular-nums", marginRight: "6px", color: "var(--yk-ink-400)", fontSize: "11px" }}>{n}.</span>
-                    <span className="refs__title">{r.title}</span>
-                    {" — "}
-                    <span className="refs__src">{r.src}</span>
-                    {" "}
-                    <span className="refs__year">({r.year})</span>
-                    {r.local && <span className="tag-local refs__local-tag">Local</span>}
-                  </li>
-                );
-              })}
+            <button className="refs__toggle" onClick={() => setRefsOpen(o => !o)} aria-expanded={refsOpen}>
+              <h2 className="refs__hd">References</h2>
+              <svg width="12" height="12" viewBox="0 0 10 10" fill="none" aria-hidden="true" style={{ transform: refsOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s', flexShrink: 0 }}>
+                <path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+            <ol className={`refs__list${refsOpen ? ' refs__list--open' : ''}`}>
+              {activeRefs.map((r) => (
+                <li className="refs__item" id={`ref-${r.id}`} key={r.id}>
+                  <span className="refs__title">{r.title}</span>
+                  {r.local && <span className="tag-local refs__local-tag">Local</span>}
+                </li>
+              ))}
             </ol>
           </section>}
 
@@ -386,8 +507,8 @@ export default function App() {
 
         {/* Right — Ask Yukti rail */}
         <AskYukti
-          context={pathway}
-          pathway={tab}
+          context={buildClinicalContext()}
+          pathway={PATHWAY_MAP[tab] ?? tab}
           institution={institutionId}
           pendingPrompt={pendingPrompt}
           onPromptConsumed={() => setPendingPrompt(null)}

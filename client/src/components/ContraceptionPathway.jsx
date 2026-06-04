@@ -2,13 +2,14 @@
 // Follows the same Section/Row/Segmented/RiskBand/ResultBlock/Recommendation/Cite
 // primitives used by EPLPathway.
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Section, Row, Segmented, RiskBand, ResultBlock, Cite } from './primitives';
+import logoUrl from '../assets/yukti-logo.png';
 
 const METHODS = [
   {
     id: "pills-combined",
-    name: "Daily oral pill (combined)",
+    name: "Daily oral pill (combined estrogen and progestin)",
     type: "combined",
     avail: "Rx",
     route: "PO (oral)",
@@ -73,7 +74,7 @@ const METHODS = [
   },
   {
     id: "pills-pop-otc",
-    name: "Daily oral pill (progestin-only, OTC)",
+    name: "Daily oral pill (progestin-only, over-the-counter)",
     type: "progestin",
     avail: "OTC",
     route: "PO (oral)",
@@ -174,7 +175,7 @@ const MEC_CONDITIONS = [
       { id:"bf_lt6wk",              label:"Breastfeeding, <6 weeks postpartum",                              mec:{coc:4,pop:2,patch:4,ring:4,dmpa:2,cu_iud:1,lng_iud:2,implant:2} },
       { id:"bf_6wk_6mo",            label:"Breastfeeding, 6 weeks–<6 months postpartum",                    mec:{coc:2,pop:1,patch:2,ring:2,dmpa:1,cu_iud:1,lng_iud:1,implant:1} },
       { id:"breast_cancer_current", label:"Breast cancer (current)",                                         mec:{coc:4,pop:4,patch:4,ring:4,dmpa:4,cu_iud:1,lng_iud:4,implant:4} },
-      { id:"breast_cancer_past",    label:"Breast cancer (past, ≥5 years, no evidence of disease)",          mec:{coc:3,pop:3,patch:3,ring:3,dmpa:3,cu_iud:1,lng_iud:3,implant:3} },
+      { id:"breast_cancer_past",    label:"Breast cancer (past, ≥5 years, no evidence of disease)",          mec:{coc:4,pop:3,patch:4,ring:4,dmpa:3,cu_iud:1,lng_iud:3,implant:3} },
       { id:"pid_current",           label:"Pelvic inflammatory disease (current)",                           mec:{coc:1,pop:1,patch:1,ring:1,dmpa:1,cu_iud:4,lng_iud:4,implant:1} },
       { id:"sti_current",           label:"Current chlamydia or gonorrhea",                                  mec:{coc:1,pop:1,patch:1,ring:1,dmpa:1,cu_iud:4,lng_iud:4,implant:1} },
       { id:"fibroids_cavity",       label:"Uterine fibroids with cavity distortion",                         mec:{coc:1,pop:1,patch:1,ring:1,dmpa:1,cu_iud:3,lng_iud:3,implant:1} },
@@ -251,7 +252,7 @@ function AvailBadge({ avail }) {
   return <span className="avail-rx">Prescription required</span>;
 }
 
-function MethodSubCard({ m, institutionId }) {
+function MethodSubCard({ m, institutionId, onSelect, isSelected }) {
   const [copied, setCopied] = useState(false);
 
   const copyText = [
@@ -287,12 +288,7 @@ function MethodSubCard({ m, institutionId }) {
             Defaults set for 12-month coverage within standard insurance limits.
           </div>
         )}
-        {m.id === "injectable" && institutionId === "memorial" && (
-          <div className="method-sub-card__field" style={{ marginTop: "6px", color: "var(--yk-ink-600)" }}>
-            {m.memorialDetail}
-          </div>
-        )}
-        {m.id === "injectable" && institutionId !== "memorial" && (
+        {m.id === "injectable" && m.generalDetail && (
           <div className="method-sub-card__field" style={{ marginTop: "6px", color: "var(--yk-ink-600)" }}>
             {m.generalDetail}
           </div>
@@ -300,16 +296,6 @@ function MethodSubCard({ m, institutionId }) {
         {m.providerNote && (
           <div className="method-sub-card__field" style={{ marginTop: "6px", color: "var(--yk-ink-600)" }}>
             <strong>Provider note:</strong> {m.providerNote}
-          </div>
-        )}
-        {institutionId === "memorial" && m.memorialExtra && (
-          <div className="method-sub-card__field" style={{ marginTop: "4px", color: "var(--yk-ink-600)" }}>
-            Note: {m.memorialExtra}
-          </div>
-        )}
-        {m.id === "injectable" && institutionId === "memorial" && (
-          <div style={{ marginTop: "6px" }}>
-            <RiskBand level="low">Administered in ED</RiskBand>
           </div>
         )}
       </div>
@@ -350,6 +336,23 @@ function MethodSubCard({ m, institutionId }) {
             {m.sideEffects.map((se, i) => <li key={i}>{se}</li>)}
           </ul>
         </details>
+      )}
+
+      {onSelect && (
+        <div style={{ marginTop: "12px", paddingTop: "10px", borderTop: "1px solid var(--yk-ink-100, #f0f0f0)" }}>
+          <button
+            onClick={onSelect}
+            style={{
+              appearance: "none", cursor: "pointer", fontFamily: "inherit", width: "100%",
+              padding: "9px 16px", borderRadius: "6px", fontSize: "13px", fontWeight: 700,
+              background: isSelected ? "#10B981" : "var(--yk-sage-500)",
+              color: "white", border: "none",
+              transition: "background 0.15s",
+            }}
+          >
+            {isSelected ? "✓ Method selected" : "Select this method"}
+          </button>
+        </div>
       )}
     </div>
   );
@@ -490,12 +493,58 @@ function LarcMecSummary({ conditions }) {
   );
 }
 
-export default function ContraceptionPathway({ state, setState, onAsk, institutionId }) {
+function CollapsedBar({ num, headline, detail, onEdit }) {
+  return (
+    <div
+      onClick={onEdit}
+      style={{
+        display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px",
+        background: "var(--yk-sage-50, #F0FDF4)", border: "1px solid var(--yk-sage-300, #86EFAC)",
+        borderRadius: "10px", padding: "14px 18px", margin: "12px 0", cursor: "pointer",
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+        <span style={{
+          width: 26, height: 26, borderRadius: "50%", background: "#10B981",
+          display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+        }}>
+          <span style={{ color: "white", fontSize: "14px", lineHeight: 1 }}>✓</span>
+        </span>
+        <span style={{ fontSize: "14px", fontWeight: 600, color: "var(--yk-sage-700, #166534)" }}>
+          {num}: {headline}
+          {detail && <span style={{ fontWeight: 400, marginLeft: "6px" }}>— {detail}</span>}
+        </span>
+      </div>
+      <button
+        onClick={e => { e.stopPropagation(); onEdit(); }}
+        style={{ background: "none", border: "none", cursor: "pointer", color: "var(--yk-sage-600, #16A34A)", fontWeight: 600, fontSize: "13px", textDecoration: "underline" }}
+      >
+        Edit
+      </button>
+    </div>
+  );
+}
+
+export default function ContraceptionPathway({ state, setState, onAsk, institutionId, onSwitchTab }) {
   const s = state;
   const set = (k, v) => setState(prev => ({ ...prev, [k]: v }));
   const [selectedMethod, setSelectedMethod] = useState(null);
   const [ecOpen, setEcOpen] = useState(true);
   const [ciOpen, setCiOpen] = useState(true);
+  const [sec1Done, setSec1Done] = useState(false);
+  const [sec3Done, setSec3Done] = useState(false);
+  const [secPregDone, setSecPregDone] = useState(false);
+  const [sec4Done, setSec4Done] = useState(false);
+  const [selectedSpecificMethod, setSelectedSpecificMethod] = useState(null);
+  const [selectedECMethod, setSelectedECMethod] = useState(null);
+  const [dcCopied, setDcCopied] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 767);
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)');
+    const handler = e => setIsMobile(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
   const [pregTest, setPregTest] = useState(null);
   const [qsCriteria, setQsCriteria] = useState([false, false, false, false, false]);
   const anyQsMet = qsCriteria.some(Boolean);
@@ -549,13 +598,120 @@ export default function ContraceptionPathway({ state, setState, onAsk, instituti
     ecUsedElla = true;
   }
 
+  const sec1EligibilityOk = s.cxPregnancyIntention != null;
+  const sec3EligibilityOk = s.cxUps != null;
+  const secPregEligibilityOk = pregTest != null;
+  const sec4EligibilityOk = selectedSpecificMethod != null || selectedMethod === "larc";
+
+  const cxDoneCount = (secPregDone ? 1 : 0) + (sec1Done ? 1 : 0) + (sec3Done ? 1 : 0) + (sec4Done ? 1 : 0);
+  const cxCurrentStep = !secPregDone ? 1 : !sec1Done ? 2 : !sec3Done ? 3 : !sec4Done ? 4 : 5;
+  const cxStepLabels = ["Pregnancy Test", "Pregnancy Intention", "Emergency Contraception", "Same-day Contraception", "Final Medications"];
+  const cxCurrentLabel = cxStepLabels[cxCurrentStep - 1];
+
+  const MarkDoneBar = ({ eligibilityOk, done, onDone }) => {
+    if (done || !eligibilityOk) return null;
+    return (
+      <div style={{
+        borderTop: "1px solid var(--yk-ink-100, #f3f4f6)", padding: "8px 16px",
+        background: "var(--yk-sage-50, #F0FDF4)", display: "flex", justifyContent: "flex-end",
+      }}>
+        <button onClick={onDone} style={{
+          appearance: "none", cursor: "pointer", fontFamily: "inherit",
+          display: "inline-flex", alignItems: "center", gap: "8px",
+          padding: "9px 20px", borderRadius: "6px",
+          background: "var(--yk-sage-500)", border: "none",
+          fontSize: "13px", fontWeight: 700, color: "white",
+          boxShadow: "0 1px 4px rgba(0,0,0,0.12)",
+        }}>
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <circle cx="7" cy="7" r="6" stroke="white" strokeWidth="1.5" />
+            <path d="M4 7l2.2 2.2L10 5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          Mark section done
+        </button>
+      </div>
+    );
+  };
+
   return (
     <>
-      {/* Section 1 — Pregnancy Intention */}
+      {/* Mobile step indicator */}
+      {isMobile && (
+        <div className="cx-mobile-progress">
+          <div className="cx-mobile-progress__bar">
+            {[1,2,3,4,5].map(n => (
+              <div key={n} className={`cx-mobile-progress__dot${n === cxCurrentStep ? ' cx-mobile-progress__dot--active' : ''}${n < cxCurrentStep ? ' cx-mobile-progress__dot--done' : ''}`} />
+            ))}
+          </div>
+          <div className="cx-mobile-progress__label">{cxCurrentStep < 5 ? `Step ${cxCurrentStep} of 4 — ${cxCurrentLabel}` : 'Final Medications'}</div>
+        </div>
+      )}
+
+      {/* Step 1 — Pregnancy Test */}
+      {(!isMobile && secPregDone) ? (
+        <CollapsedBar
+          num="Step 1"
+          headline="Pregnancy Test"
+          detail={pregTest === "positive" ? "Positive" : pregTest === "negative" ? "Negative" : pregTest === "notdone" ? "Not done" : null}
+          onEdit={() => setSecPregDone(false)}
+        />
+      ) : (isMobile && cxCurrentStep !== 1) ? null : (
       <Section
-        num="01 / PREGNANCY INTENTION"
-        title="Pregnancy intention"
+        num=""
+        title="Step 1: Pregnancy Test"
+        sub="Required before initiating hormonal contraception."
+        footer={<MarkDoneBar eligibilityOk={secPregEligibilityOk} done={secPregDone} onDone={() => setSecPregDone(true)} />}
+      >
+        <div style={{ padding: "16px 20px 4px" }}>
+          <div style={{ padding: "4px 0 8px" }}>
+            <Segmented
+              value={pregTest}
+              onChange={setPregTest}
+              options={[
+                { value: "positive", label: "Positive" },
+                { value: "negative", label: "Negative" },
+                { value: "notdone",  label: "Not done"  },
+              ]}
+            />
+          </div>
+          {pregTest === "positive" && (
+            <div style={{ margin: "0 0 0.75rem", padding: "14px 16px", borderRadius: "8px", background: "var(--yk-ink-50, #f9fafb)", border: "1px solid var(--yk-ink-150, #e5e5e5)" }}>
+              <div style={{ fontWeight: 600, fontSize: "13.5px", color: "var(--yk-ink-800)", marginBottom: "10px" }}>Pregnancy confirmed — options counseling required</div>
+              <div style={{ fontSize: "12.5px", color: "var(--yk-ink-600)", marginBottom: "10px" }}>What is the patient's pregnancy intention?</div>
+              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                {["Desired","Undecided","Undesired"].map(label => {
+                  const val = label.toLowerCase();
+                  return <button key={val} onClick={() => set("cxPregnancyIntention", val)} style={{ appearance: "none", padding: "8px 16px", borderRadius: "6px", cursor: "pointer", fontFamily: "inherit", fontSize: "13px", fontWeight: 600, background: s.cxPregnancyIntention === val ? "#10B981" : "white", color: s.cxPregnancyIntention === val ? "white" : "#374151", border: "1.5px solid #D1D5DB" }}>{label}</button>;
+                })}
+              </div>
+              {s.cxPregnancyIntention === "undesired" && onSwitchTab && (
+                <div style={{ marginTop: "12px", paddingTop: "10px", borderTop: "1px solid var(--yk-ink-150)" }}>
+                  <button onClick={() => onSwitchTab("med-abortion")} style={{ appearance: "none", padding: "9px 18px", borderRadius: "6px", cursor: "pointer", fontFamily: "inherit", fontSize: "13px", fontWeight: 700, background: "var(--yk-sage-500)", color: "white", border: "none" }}>Go to Medication Abortion pathway →</button>
+                </div>
+              )}
+              {(s.cxPregnancyIntention === "desired" || s.cxPregnancyIntention === "undecided") && (
+                <div style={{ marginTop: "10px", fontSize: "12.5px", color: "var(--yk-ink-600)" }}>Refer to OB/GYN. Offer prenatal vitamins. Contraception initiation not indicated at this time.</div>
+              )}
+            </div>
+          )}
+        </div>
+      </Section>
+      )}
+
+      {/* Step 2 — Pregnancy Intention */}
+      {(!isMobile && sec1Done) ? (
+        <CollapsedBar
+          num="Step 2"
+          headline="Pregnancy Intention"
+          detail={s.cxPregnancyIntention === "undecided" ? "Yes / Undecided" : s.cxPregnancyIntention === "no" ? "No" : null}
+          onEdit={() => setSec1Done(false)}
+        />
+      ) : (isMobile && cxCurrentStep !== 2) ? null : (
+      <Section
+        num=""
+        title="Step 2: Pregnancy Intention"
         sub="Guides whether to focus on EC, contraception initiation, or both."
+        footer={<MarkDoneBar eligibilityOk={sec1EligibilityOk} done={sec1Done} onDone={() => setSec1Done(true)} />}
       >
         <Row
           label="Interested in pregnancy in the next year?"
@@ -578,24 +734,34 @@ export default function ContraceptionPathway({ state, setState, onAsk, instituti
           </div>
         )}
       </Section>
+      )}
 
-      <div style={pregnantConfirmed ? { opacity: 0.45, pointerEvents: "none" } : undefined}>
+      <div>
+
 
       {/* Section 3 — Emergency Contraception */}
+      {(!isMobile && sec3Done) ? (
+        <CollapsedBar
+          num="Step 3"
+          headline="Emergency Contraception"
+          detail={s.cxUps === "no" ? "No EC indicated" : ecPrimary !== "Awaiting input" ? ecPrimary : null}
+          onEdit={() => setSec3Done(false)}
+        />
+      ) : (isMobile && cxCurrentStep !== 3) ? null : (
       <Section
-        num="03 / EMERGENCY CONTRACEPTION"
-        title="Emergency Contraception eligibility & selection"
+        num=""
+        title="Step 3: Emergency Contraception"
         sub="Complete all rows when unprotected sex occurred in the last 5 days."
         citeIds={["fda-planb-2009", "fda-ella-2010"]}
         headerRight={
-          <button
-            className="hcg-toggle"
-            onClick={() => setEcOpen(o => !o)}
-            aria-expanded={ecOpen}
-          >
-            {ecOpen ? "− Hide" : "+ Show"}
-          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            {sec3Done && <span style={{ fontSize: "12px", color: "#10B981", fontWeight: 600 }}>✓ Done</span>}
+            <button className="hcg-toggle" onClick={() => setEcOpen(o => !o)} aria-expanded={ecOpen}>
+              {ecOpen ? "− Hide" : "+ Show"}
+            </button>
+          </div>
         }
+        footer={<MarkDoneBar eligibilityOk={sec3EligibilityOk} done={sec3Done} onDone={() => setSec3Done(true)} />}
       >
         {ecOpen && (
           <>
@@ -680,6 +846,21 @@ export default function ContraceptionPathway({ state, setState, onAsk, instituti
                   Emergency Contraception pills have no medical contraindications and do not cause abortion or birth defects.{" "}
                   <Cite ids={["fda-planb-2009", "fda-ella-2010"]} />
                 </div>
+                {ecPrimary !== "Awaiting input" && ecPrimary !== "No Emergency Contraception indicated" && (
+                  <div style={{ padding: "0 16px 12px" }}>
+                    <button
+                      onClick={() => setSelectedECMethod(selectedECMethod === ecPrimary ? null : ecPrimary)}
+                      style={{
+                        appearance: "none", cursor: "pointer", fontFamily: "inherit", width: "100%",
+                        padding: "9px 16px", borderRadius: "6px", fontSize: "13px", fontWeight: 700,
+                        background: selectedECMethod === ecPrimary ? "#10B981" : "var(--yk-sage-500)",
+                        color: "white", border: "none", transition: "background 0.15s",
+                      }}
+                    >
+                      {selectedECMethod === ecPrimary ? "✓ EC method selected" : "Select this method"}
+                    </button>
+                  </div>
+                )}
                 {s.cxTimeUps === "gt120" && (
                   <ClinicFinder />
                 )}
@@ -688,53 +869,39 @@ export default function ContraceptionPathway({ state, setState, onAsk, instituti
           </>
         )}
       </Section>
+      )}
 
-      {/* Section 4 — Contraception Initiation */}
+      {/* ─── Section 4: Same-day Contraception Initiation & Method Selection ─── */}
+      {(!isMobile && sec4Done) ? (
+        <CollapsedBar
+          num="Step 4"
+          headline="Same-day Contraception Initiation & Method Selection"
+          detail={selectedSpecificMethod ? METHODS.find(m => m.id === selectedSpecificMethod)?.name : selectedMethod === "larc" ? "LARC (referral)" : null}
+          onEdit={() => setSec4Done(false)}
+        />
+      ) : (isMobile && cxCurrentStep !== 4) ? null : (
       <Section
-        num="04 / CONTRACEPTION INITIATION"
-        title="Quick start & method selection"
+        num=""
+        title="Step 4: Same-day Contraception Initiation & Method Selection"
         sub="ACCESS-Bridge criteria guide same-day initiation eligibility."
         citeIds={["acog-206-2019", "cdc-mec-2024"]}
         headerRight={
-          <button
-            className="hcg-toggle"
-            onClick={() => setCiOpen(o => !o)}
-            aria-expanded={ciOpen}
-          >
-            {ciOpen ? "− Hide" : "+ Show"}
-          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            {sec4Done && <span style={{ fontSize: "12px", color: "#10B981", fontWeight: 600 }}>✓ Done</span>}
+            <button className="hcg-toggle" onClick={() => setCiOpen(o => !o)} aria-expanded={ciOpen}>
+              {ciOpen ? "− Hide" : "+ Show"}
+            </button>
+          </div>
         }
+        footer={<MarkDoneBar eligibilityOk={sec4EligibilityOk} done={sec4Done} onDone={() => setSec4Done(true)} />}
       >
         {ciOpen && (
           <>
-            {/* ─── STEP 1 box ─── */}
-            <div style={{ border: "1px solid var(--yk-border, #dde5e0)", borderRadius: "8px", margin: "0 0 10px" }}>
-              <div className="ci-step-label">Step 1 — Quick start eligibility</div>
-
-              <Row
-                label="Pregnancy test result"
-                control={
-                  <Segmented
-                    value={pregTest}
-                    onChange={setPregTest}
-                    options={[
-                      { value: "positive", label: "Positive" },
-                      { value: "negative", label: "Negative" },
-                      { value: "notdone",  label: "Not done"  },
-                    ]}
-                  />
-                }
-              />
-              {pregTest === "positive" && (
-                <div className="alert alert--sage" style={{ margin: "0 0 0.75rem" }}>
-                  <div className="alert__body">
-                    <div className="alert__title">Pregnancy identified — contraception initiation not indicated at this time.</div>
-                  </div>
-                </div>
-              )}
-
-              {pregTest !== null && pregTest !== "positive" && (
-                <>
+            {pregTest !== null && pregTest !== "positive" && (
+              <>
+                {/* ─── STEP 1 box ─── */}
+                <div style={{ border: "1px solid var(--yk-border, #dde5e0)", borderRadius: "8px", margin: "0 0 10px" }}>
+                  <div className="ci-step-label">Part A — Quick start eligibility</div>
                   {QS_CRITERIA.map((text, i) => (
                     <label key={i} style={{ display: "flex", gap: "10px", alignItems: "flex-start",
                       marginBottom: "8px", cursor: "pointer", fontSize: "12.5px",
@@ -744,40 +911,24 @@ export default function ContraceptionPathway({ state, setState, onAsk, instituti
                       {text}
                     </label>
                   ))}
-
-                  {anyQsMet ? (
-                    <div className="alert alert--ok" style={{ margin: "0 0 0.75rem" }}>
-                      <div className="alert__body">
-                        <div className="alert__title">Patient meets quick start criteria — may initiate contraception today.</div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="alert alert--warn" style={{ margin: "0 0 0.75rem" }}>
-                      <div className="alert__body">
-                        <div className="alert__title">Patient does not meet quick start criteria. Contraception is not teratogenic — patient may choose to start today. Recommend urine pregnancy test in 2 weeks.</div>
-                      </div>
+                  {anyQsMet && (
+                    <div style={{ margin: "4px 16px 10px", fontSize: "12.5px", color: "#166534", fontWeight: 500 }}>
+                      ✓ Meets quick start criteria — may initiate today.
                     </div>
                   )}
-
                   {ecUsedElla && (
-                    <div className="alert alert--warn" style={{ margin: "0 0 0.75rem" }}>
-                      <div className="alert__body">
-                        <div className="alert__title">Recommend waiting 5 days after Ella before starting hormonal contraception.</div>
-                      </div>
+                    <div style={{ margin: "4px 16px 10px", fontSize: "12.5px", color: "#78350F" }}>
+                      ⚠ Wait 5 days after Ella before starting hormonal contraception.
                     </div>
                   )}
-                </>
-              )}
-            </div>
+                </div>
 
-            {pregTest !== null && pregTest !== "positive" && (
-              <>
                 {/* ─── STEP 2 box ─── */}
                 <div style={{ border: "1px solid var(--yk-border, #dde5e0)", borderRadius: "8px", margin: "0 0 10px" }}>
-                  <div className="ci-step-label">Step 2 — Medical history</div>
+                  <div className="ci-step-label">Part B — Medical history</div>
                   <div style={{ padding: "0 16px 8px", fontSize: "12px", color: "var(--yk-ink-600)" }}>
                     Check any conditions that apply. Only conditions that affect contraceptive safety are shown.{" "}
-                    <a href="https://www.cdc.gov/mmwr/volumes/73/rr/rr7304a1.htm" target="_blank" rel="noreferrer" style={{ color: "var(--yk-sage-700)" }}>
+                    <a href="https://www.cdc.gov/contraception/media/pdfs/2024/07/us-mec-summary-chart-color-508.pdf" target="_blank" rel="noreferrer" style={{ color: "var(--yk-sage-700)" }}>
                       CDC US MEC 2024 ↗
                     </a>
                   </div>
@@ -814,7 +965,7 @@ export default function ContraceptionPathway({ state, setState, onAsk, instituti
 
                 {/* ─── STEP 3 box ─── */}
                 <div style={{ border: "1px solid var(--yk-border, #dde5e0)", borderRadius: "8px", margin: "0 0 10px" }}>
-                  <div className="ci-step-label">Step 3 — Method selection &amp; prescribing</div>
+                  <div className="ci-step-label">Part C — Method selection &amp; prescribing</div>
                   <div style={{ padding: "0 16px 8px" }}>
                     {METHOD_GROUPS.filter(g => isMethodSafe(g.id)).map(g => {
                       const active = selectedMethod === g.id;
@@ -822,7 +973,7 @@ export default function ContraceptionPathway({ state, setState, onAsk, instituti
                         <button
                           key={g.id}
                           className={`method-btn${active ? " method-btn--active" : selectedMethod !== null ? " method-btn--dim" : ""}`}
-                          onClick={() => setSelectedMethod(active ? null : g.id)}
+                          onClick={() => { setSelectedMethod(active ? null : g.id); setSelectedSpecificMethod(null); }}
                         >
                           <span>{g.label}</span>
                         </button>
@@ -862,7 +1013,11 @@ export default function ContraceptionPathway({ state, setState, onAsk, instituti
                       ) : (
                         <div className="method-detail">
                           {getMethodsForGroup(selectedMethod, estrogenCi).map(m => (
-                            <MethodSubCard key={m.id} m={m} institutionId={institutionId} />
+                            <MethodSubCard
+                              key={m.id} m={m} institutionId={institutionId}
+                              isSelected={selectedSpecificMethod === m.id}
+                              onSelect={() => setSelectedSpecificMethod(selectedSpecificMethod === m.id ? null : m.id)}
+                            />
                           ))}
                           {checkedConditionList.length > 0 && (
                             selectedMethod === "pill" ? (
@@ -910,8 +1065,161 @@ export default function ContraceptionPathway({ state, setState, onAsk, instituti
           </>
         )}
       </Section>
+      )}
 
       </div>{/* end pregnantConfirmed disable wrapper */}
+
+      {/* ── Final medications summary ── */}
+      {(selectedECMethod || selectedSpecificMethod || selectedMethod === "larc") && (!isMobile || cxCurrentStep === 5) && (
+        <div style={{
+          margin: "20px 0 80px", padding: "18px 20px",
+          border: "1.5px solid var(--yk-sage-300)",
+          borderTop: "3px solid var(--yk-sage-500)",
+          borderRadius: "10px", background: "var(--yk-sage-100, #E6EBE5)",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "14px" }}>
+            <img src={logoUrl} alt="" style={{ width: "18px", height: "18px", objectFit: "contain", flexShrink: 0 }} />
+            <span style={{ fontWeight: 700, fontSize: "14px", color: "var(--yk-ink-900)" }}>Final Medications</span>
+          </div>
+          {selectedECMethod && (
+            <div style={{ marginBottom: "10px" }}>
+              <div style={{ fontSize: "11.5px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--yk-ink-500)", marginBottom: "3px" }}>
+                Emergency Contraception
+              </div>
+              <div style={{ fontSize: "14px", fontWeight: 600, color: "var(--yk-ink-900)" }}>{selectedECMethod}</div>
+            </div>
+          )}
+          {(selectedSpecificMethod || selectedMethod === "larc") && (() => {
+            const m = selectedSpecificMethod ? METHODS.find(x => x.id === selectedSpecificMethod) : null;
+            return (
+              <div>
+                <div style={{ fontSize: "11.5px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--yk-ink-500)", marginBottom: "3px" }}>
+                  Contraception
+                </div>
+                {m ? (
+                  <>
+                    <div style={{ fontSize: "14px", fontWeight: 600, color: "var(--yk-ink-900)", marginBottom: "6px" }}>{m.name}</div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                      <div style={{ fontSize: "12.5px", color: "var(--yk-ink-700)" }}><strong>Drug:</strong> {m.drugName}</div>
+                      <div style={{ fontSize: "12.5px", color: "var(--yk-ink-700)" }}><strong>Route:</strong> {m.route}</div>
+                      <div style={{ fontSize: "12.5px", color: "var(--yk-ink-700)" }}><strong>Dose:</strong> {m.dose}</div>
+                      {m.qty !== "—" && <div style={{ fontSize: "12.5px", color: "var(--yk-ink-700)" }}><strong>Quantity:</strong> {m.qty}</div>}
+                      {m.refills !== "—" && <div style={{ fontSize: "12.5px", color: "var(--yk-ink-700)" }}><strong>Refills:</strong> {m.refills}</div>}
+                    </div>
+                  </>
+                ) : (
+                  <div style={{ fontSize: "14px", fontWeight: 600, color: "var(--yk-ink-900)" }}>LARC — refer to OB/GYN for placement</div>
+                )}
+              </div>
+            );
+          })()}
+
+          {/* Discharge instructions */}
+          {(() => {
+            const m = selectedSpecificMethod ? METHODS.find(x => x.id === selectedSpecificMethod) : null;
+            const ecInstructions = selectedECMethod?.includes("ulipristal") || selectedECMethod?.includes("Ella")
+              ? "Take 1 tablet (30mg) as soon as possible. Do not use if you are already pregnant. If breastfeeding, pump and discard milk for 36 hours after taking. Your next period may be early or late — take a pregnancy test if your period is more than 1 week late. Common side effects: nausea, headache, dizziness, abdominal pain, fatigue."
+              : selectedECMethod?.includes("levonorgestrel") || selectedECMethod?.includes("Plan B")
+              ? "Take 1 tablet (1.5mg) as soon as possible. Your next period may be early or late — take a pregnancy test if your period is more than 1 week late. Common side effects: nausea, abdominal pain, fatigue, headache, dizziness, breast tenderness."
+              : null;
+            const contraInstructions = selectedMethod === "larc"
+              ? "You have been referred to OB/GYN for LARC (IUD or implant) placement. Use condoms until your device is placed. Contact your OB/GYN office within the next few days to schedule your appointment."
+              : m?.patientInstructions ?? null;
+            const lines = [ecInstructions, contraInstructions].filter(Boolean);
+            if (lines.length === 0) return null;
+            const text = lines.join("\n\n");
+            return (
+              <div style={{ marginTop: "16px", paddingTop: "14px", borderTop: "1px solid var(--yk-sage-200)" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
+                  <div style={{ fontSize: "13px", fontWeight: 600, color: "var(--yk-ink-800)" }}>Discharge instructions</div>
+                  <button onClick={() => { navigator.clipboard.writeText(text); setDcCopied(true); setTimeout(() => setDcCopied(false), 2000); }} style={{
+                    appearance: "none", padding: "4px 12px", borderRadius: "6px", cursor: "pointer",
+                    fontFamily: "inherit", fontSize: "12px", fontWeight: 600,
+                    background: dcCopied ? "#F0FDF4" : "white",
+                    color: dcCopied ? "#166534" : "var(--yk-ink-600)",
+                    border: `1px solid ${dcCopied ? "#86EFAC" : "var(--yk-ink-200)"}`,
+                  }}>
+                    {dcCopied ? "✓ Copied" : "⎘ Copy"}
+                  </button>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                  {ecInstructions && (
+                    <div>
+                      <div style={{ fontSize: "11.5px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--yk-ink-500)", marginBottom: "4px" }}>Emergency contraception</div>
+                      <div style={{ fontSize: "12.5px", color: "var(--yk-ink-700)", lineHeight: 1.6 }}>{ecInstructions}</div>
+                    </div>
+                  )}
+                  {contraInstructions && (
+                    <div>
+                      {ecInstructions && <div style={{ fontSize: "11.5px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--yk-ink-500)", marginBottom: "4px" }}>Same-day contraception</div>}
+                      <div style={{ fontSize: "12.5px", color: "var(--yk-ink-700)", lineHeight: 1.6 }}>{contraInstructions}</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+      )}
+
+      {/* ── Sticky progress footer ── */}
+      <div style={{
+        position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 100,
+        background: "var(--yk-sage-50, #f4f7f4)",
+        borderTop: "1px solid var(--yk-sage-200)",
+        boxShadow: "0 -2px 12px rgba(0,0,0,0.07)",
+      }}>
+        <div style={{
+          margin: "0 auto", padding: "12px 20px",
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          gap: "16px",
+        }}>
+          {isMobile && cxCurrentStep > 1 && (
+            <button onClick={() => {
+              if (cxCurrentStep === 5) setSec4Done(false);
+              else if (cxCurrentStep === 4) setSec3Done(false);
+              else if (cxCurrentStep === 3) setSec1Done(false);
+              else if (cxCurrentStep === 2) setSecPregDone(false);
+            }} style={{
+              appearance: "none", background: "none", border: "1px solid var(--yk-ink-200)",
+              borderRadius: "999px", padding: "7px 12px", fontSize: "12px", fontWeight: 600,
+              color: "var(--yk-ink-600)", cursor: "pointer", flexShrink: 0,
+            }}>← Back</button>
+          )}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: "13.5px", fontWeight: 700, color: "var(--yk-ink-800)" }}>
+              {cxCurrentStep <= 4 ? `Step ${cxCurrentStep} of 4 — ${cxCurrentLabel}` : "Final Medications"}
+            </div>
+            <div style={{
+              marginTop: "6px", height: "4px", width: "100%", maxWidth: "240px",
+              background: "var(--yk-ink-150)", borderRadius: "2px", overflow: "hidden",
+            }}>
+              <div style={{
+                height: "100%", borderRadius: "2px",
+                width: `${(cxDoneCount / 4) * 100}%`,
+                background: "#10B981", transition: "width 0.35s ease",
+              }} />
+            </div>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px", flexShrink: 0 }}>
+            {onAsk && (
+              <button onClick={() => onAsk()} style={{
+                appearance: "none", display: "inline-flex", alignItems: "center", gap: "6px",
+                padding: "7px 12px", borderRadius: "999px",
+                background: "var(--yk-sage-500)", border: "none",
+                fontSize: "12px", fontWeight: 600, color: "white", cursor: "pointer",
+                flexShrink: 0,
+              }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+                </svg>
+                Ask Yukti
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
     </>
   );
 }

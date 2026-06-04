@@ -1,7 +1,9 @@
 fastapi
-uvicorn
+uvicorn[standard]
 anthropic
 python-dotenv
 pypdf
-chromadb
+chromadb==0.6.3
 sentence-transformers
+certifi
+pydantic

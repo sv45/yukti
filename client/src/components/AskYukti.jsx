@@ -1,6 +1,12 @@
 // Right rail — Ask Yukti chat panel.
 
 import React, { useState, useRef, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
+import logoUrl from '../assets/yukti-logo.png';
+
+const YuktiIcon = () => (
+  <img src={logoUrl} alt="" style={{ width: '16px', height: '16px', objectFit: 'contain', flexShrink: 0 }} />
+);
 
 export default function AskYukti({ context, pathway, institution, pendingPrompt, onPromptConsumed, onClose, onBotMessage }) {
   const [messages, setMessages] = useState([]);
@@ -52,43 +58,21 @@ export default function AskYukti({ context, pathway, institution, pendingPrompt,
     }
   };
 
-  const suggestions = [
-    "Compare expectant vs medical management for this patient",
-    "What's the local RhoGAM protocol?",
-    "When is repeat hCG actually useful here?",
-    "Red flags before discharge?",
-  ];
-
-  const gaDisplay = (context.gaWeeks != null || context.gaDays != null)
-    ? `GA ${context.gaWeeks ?? 0}w${context.gaDays ?? 0}d`
-    : "GA —";
-  const rhDisplay = context.rhStatus
-    ? `Rh ${context.rhStatus[0].toUpperCase()}`
-    : "Rh —";
-  const hemoDisplay = context.hemoStatus || "stable";
 
   return (
     <aside className="rail">
       <header className="rail__hd">
-        <div style={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div className="rail__title">
-            <span className="rail__title-dot" />
+            <YuktiIcon />
             Ask Yukti
           </div>
           {onClose && (
-            <button onClick={onClose} aria-label="Close" style={{background:"none", border:"none", cursor:"pointer", padding:"4px 6px", color:"var(--yk-ink-500)", fontSize:"18px", lineHeight:1}}>✕</button>
+            <button onClick={onClose} aria-label="Close" style={{ background: "none", border: "none", cursor: "pointer", padding: "4px 6px", color: "var(--yk-ink-500)", fontSize: "18px", lineHeight: 1 }}>✕</button>
           )}
         </div>
-        <div className="rail__sub">Responses drawn only from approved guidelines</div>
       </header>
 
-      {/* Active context bar */}
-      <div className="rail__ctx">
-        <span className="rail__ctx-key">Context</span>
-        <span className="rail__ctx-val">
-          {gaDisplay} · {rhDisplay} · {hemoDisplay}
-        </span>
-      </div>
 
       <div className="rail__body" ref={bodyRef}>
         {messages.length === 0 && !busy && (
@@ -98,7 +82,8 @@ export default function AskYukti({ context, pathway, institution, pendingPrompt,
                 <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
               </svg>
             </div>
-            Ask a clinical question about the active pathway.
+            <div className="rail__empty-title">Ask Yukti</div>
+            <div className="rail__empty-hint">Type a clinical question below — answers are drawn only from approved guidelines.</div>
           </div>
         )}
 
@@ -108,15 +93,31 @@ export default function AskYukti({ context, pathway, institution, pendingPrompt,
           ) : (
             <div key={i} className="msg msg--bot">
               <div className="msg__hd">
-                <span className="rail__title-dot" /> Yukti
+                <YuktiIcon /> Yukti
               </div>
-              <div>{m.text}</div>
+              <div className="msg__body">
+                <ReactMarkdown
+                  components={{
+                    p: ({ children }) => <p style={{ marginBottom: '0.5em', lineHeight: 1.6 }}>{children}</p>,
+                    strong: ({ children }) => <strong style={{ fontWeight: 600 }}>{children}</strong>,
+                    ul: ({ children }) => <ul style={{ listStyleType: 'disc', paddingLeft: '1.2em', marginBottom: '0.5em' }}>{children}</ul>,
+                    ol: ({ children }) => <ol style={{ listStyleType: 'decimal', paddingLeft: '1.2em', marginBottom: '0.5em' }}>{children}</ol>,
+                    li: ({ children }) => <li style={{ lineHeight: 1.6, marginBottom: '0.15em' }}>{children}</li>,
+                    h2: ({ children }) => <h2 style={{ fontWeight: 600, fontSize: '0.95em', marginTop: '0.75em', marginBottom: '0.25em' }}>{children}</h2>,
+                    h3: ({ children }) => <h3 style={{ fontWeight: 600, fontSize: '0.9em', marginTop: '0.5em', marginBottom: '0.2em' }}>{children}</h3>,
+                    table: ({ children }) => <table style={{ fontSize: '0.8em', borderCollapse: 'collapse', width: '100%', marginBottom: '0.5em' }}>{children}</table>,
+                    th: ({ children }) => <th style={{ border: '1px solid #ccc', padding: '4px 6px', background: '#f0f0f0', textAlign: 'left' }}>{children}</th>,
+                    td: ({ children }) => <td style={{ border: '1px solid #ccc', padding: '4px 6px' }}>{children}</td>,
+                    blockquote: ({ children }) => <blockquote style={{ borderLeft: '3px solid #1a5f7a', paddingLeft: '0.75em', color: '#555', fontStyle: 'italic', margin: '0.5em 0' }}>{children}</blockquote>,
+                  }}
+                >
+                  {m.text}
+                </ReactMarkdown>
+              </div>
               {m.sources && m.sources.length > 0 && (
-                <div className="msg__sources">
-                  {m.sources.map((src, i) => (
-                    <span key={i} className="msg__chip" title={`Score: ${src.score != null ? (src.score * 100).toFixed(0) + "%" : "—"}`}>
-                      {src.filename || src}
-                    </span>
+                <div className="msg__citations">
+                  {m.sources.map((s, i) => (
+                    <span key={i} className="msg__citation">{s.citation}</span>
                   ))}
                 </div>
               )}
@@ -126,20 +127,12 @@ export default function AskYukti({ context, pathway, institution, pendingPrompt,
 
         {busy && (
           <div className="msg msg--bot">
-            <div className="msg__hd"><span className="rail__title-dot" /> Yukti</div>
+            <div className="msg__hd"><YuktiIcon /> Yukti</div>
             <div style={{ color: "var(--yk-ink-500)" }}>Searching approved guidelines…</div>
           </div>
         )}
       </div>
 
-      {messages.length === 0 && (
-        <div className="rail__suggestions">
-          <div className="rail__suggest-label">Suggested</div>
-          {suggestions.map(q => (
-            <button key={q} className="suggest" onClick={() => sendMessage(q)}>{q}</button>
-          ))}
-        </div>
-      )}
 
       <form className="rail__form" onSubmit={(e) => { e.preventDefault(); sendMessage(input); }}>
         <div className="rail__inputwrap">

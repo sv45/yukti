@@ -78,19 +78,20 @@ def extract_text(path: Path) -> str:
 # Chunking
 # ---------------------------------------------------------------------------
 
-def chunk_text(text: str) -> list[str]:
+def chunk_text(text: str, cw: int = CHUNK_WORDS) -> list[str]:
     """Split text into overlapping word-based chunks."""
+    ow = max(1, int(cw * OVERLAP_WORDS / CHUNK_WORDS))
     words = re.split(r"\s+", text.strip())
     chunks = []
     start = 0
     while start < len(words):
-        end = min(start + CHUNK_WORDS, len(words))
+        end = min(start + cw, len(words))
         chunk = " ".join(words[start:end])
         if chunk.strip():
             chunks.append(chunk)
         if end == len(words):
             break
-        start += CHUNK_WORDS - OVERLAP_WORDS
+        start += cw - ow
     return chunks
 
 
@@ -105,6 +106,7 @@ def ingest(
     source: str = "",
     regimen: str = "",
     file_arg: str | None = None,
+    chunk_words: int | None = None,
 ):
     """Ingest documents into ChromaDB.
 
@@ -114,6 +116,8 @@ def ingest(
 
     if source_type not in VALID_SOURCE_TYPES:
         raise ValueError(f"source_type must be one of {VALID_SOURCE_TYPES}")
+
+    effective_chunk_words = chunk_words if chunk_words is not None else CHUNK_WORDS
 
     pathway_list = pathways or []
     for p in pathway_list:
@@ -160,13 +164,14 @@ def ingest(
             print(f"  ERROR reading {doc_path.name}: {e}")
             continue
 
-        chunks = chunk_text(text)
+        chunks = chunk_text(text, cw=effective_chunk_words)
         print(f"  {len(chunks)} chunks")
 
         embeddings = model.encode(chunks, show_progress_bar=False).tolist()
 
         ids = [f"{doc_path.stem}_chunk_{i}" for i in range(len(chunks))]
 
+        pathway_flags = {f"pathway_{p}": "true" for p in pathway_list}
         metadatas = [
             {
                 "source_filename": doc_path.name,
@@ -174,6 +179,7 @@ def ingest(
                 "source": source,
                 "institution": institution or "",
                 "pathways": ",".join(pathway_list),
+                **pathway_flags,
                 "regimen": regimen,
                 "date_ingested": date_ingested,
                 "chunk_index": i,
@@ -233,6 +239,12 @@ if __name__ == "__main__":
         default=None,
         help="Ingest only this specific file (absolute or relative to documents/ dir). If omitted, all files in documents/ are processed.",
     )
+    parser.add_argument(
+        "--chunk-words",
+        type=int,
+        default=None,
+        help=f"Override chunk size in words (default: {CHUNK_WORDS}).",
+    )
     args = parser.parse_args()
 
     if args.source_type == "institutional_protocol" and not args.institution:
@@ -245,4 +257,5 @@ if __name__ == "__main__":
         source=args.source,
         regimen=args.regimen,
         file_arg=args.file,
+        chunk_words=args.chunk_words,
     )

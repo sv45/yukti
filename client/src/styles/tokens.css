@@ -56,6 +56,9 @@
   --yk-info-bg:       #E3EEF0;
   --yk-info-fg:       #1A4F5A;
   --yk-info-bd:       #C7DDE1;
+  --yk-warn-bg:       #FEF9C3;
+  --yk-warn-fg:       #854D0E;
+  --yk-warn-bd:       #FDE68A;
 
   /* Localization callout — sage (was purple, deprecated) */
   --yk-local-bg:      var(--yk-sage-50);

@@ -103,6 +103,66 @@ STATE_NAMES = {
 }
 
 
+STATE_NAME_TO_ABBR = {v.lower(): k for k, v in STATE_NAMES.items()}
+LEGALITY_KEYWORDS = {"legal", "illegal", "legal in", "allowed", "permit", "ban", "banned",
+                     "restrict", "can i", "can we", "is it", "available", "access", "law",
+                     "abortion law", "medication abortion in", "mifepristone in"}
+
+def _get_state_law_context(message: str) -> str | None:
+    """Return formatted state law context if query appears to be about abortion legality in a state."""
+    msg_lower = message.lower()
+    if not any(kw in msg_lower for kw in LEGALITY_KEYWORDS):
+        return None
+    # Find mentioned state — full name match first, then uppercase abbreviation only
+    found_abbr = None
+    import re as _re
+    for abbr, name in STATE_NAMES.items():
+        if name.lower() in msg_lower:
+            found_abbr = abbr
+            break
+    if not found_abbr:
+        # Match abbreviation only when it appears as uppercase in original message
+        for abbr in STATE_NAMES:
+            if _re.search(rf'\b{abbr}\b', message):
+                found_abbr = abbr
+                break
+    if not found_abbr:
+        return None
+    try:
+        with open(ABORTION_STATUS_FILE, "r") as f:
+            data = json.load(f)
+        state_data = data.get("states", {}).get(found_abbr)
+        if not state_data:
+            return None
+        status = state_data.get("status", "unknown")
+        state_name = STATE_NAMES.get(found_abbr, found_abbr)
+        limit = state_data.get("gestational_limit_weeks")
+        summary = state_data.get("summary", "")
+        last_verified = state_data.get("last_verified", "")
+        sources = data.get("meta", {}).get("sources", [])
+        source_names = [
+            "KFF" if "kff.org" in s else
+            "Guttmacher Institute" if "guttmacher" in s else
+            "Center for Reproductive Rights" if "reproductiverights" in s else s
+            for s in sources
+        ]
+        law_text = f"ABORTION LEGAL STATUS — {state_name} (as of {last_verified}):\n"
+        if status == "legal":
+            law_text += f"Medication abortion is LEGAL in {state_name}."
+        elif status == "banned":
+            law_text += f"Medication abortion is NOT PERMITTED in {state_name}."
+        elif status == "restricted":
+            law_text += f"Medication abortion is LEGAL WITH RESTRICTIONS in {state_name}."
+            if limit:
+                law_text += f" Gestational limit: {limit} weeks."
+        if summary:
+            law_text += f" {summary}"
+        law_text += f"\nSources: {', '.join(source_names)}. Last verified: {last_verified}."
+        return law_text
+    except Exception:
+        return None
+
+
 @app.get("/api/abortion-status")
 def get_abortion_status(state: str = Query(..., description="Two-letter state abbreviation")):
     state = state.upper().strip()
@@ -340,10 +400,11 @@ def get_pharmacy_details(
         return {}
     _ssl_ctx = ssl.create_default_context(cafile=certifi.where())
     try:
+        # Step 1: find place_id
         params = urllib.parse.urlencode({
-            "input": f"{name} {city} {state}",
+            "input": f"{name} pharmacy {city} {state}",
             "inputtype": "textquery",
-            "fields": "formatted_phone_number,opening_hours,url",
+            "fields": "place_id",
             "key": api_key,
         })
         with urllib.request.urlopen(
@@ -354,11 +415,24 @@ def get_pharmacy_details(
         candidates = data.get("candidates", [])
         if not candidates:
             return {}
-        c = candidates[0]
+        place_id = candidates[0].get("place_id")
+        if not place_id:
+            return {}
+        # Step 2: fetch place details including phone
+        detail_params = urllib.parse.urlencode({
+            "place_id": place_id,
+            "fields": "formatted_phone_number,opening_hours",
+            "key": api_key,
+        })
+        with urllib.request.urlopen(
+            f"https://maps.googleapis.com/maps/api/place/details/json?{detail_params}",
+            timeout=6, context=_ssl_ctx
+        ) as resp:
+            detail = json.loads(resp.read())
+        result = detail.get("result", {})
         return {
-            "phone": c.get("formatted_phone_number"),
-            "hours": c.get("opening_hours", {}).get("weekday_text") or None,
-            "url": c.get("url"),
+            "phone": result.get("formatted_phone_number"),
+            "hours": result.get("opening_hours", {}).get("weekday_text") or None,
         }
     except Exception:
         return {}
@@ -366,12 +440,34 @@ def get_pharmacy_details(
 
 BASE_SYSTEM_PROMPT = (
     "You are Yukti, a clinical decision support assistant for emergency medicine physicians. "
-    "You may ONLY answer using the approved guideline passages provided in the user message. "
+    "You may ONLY answer using the approved guideline passages and state law information provided in the user message. "
     "Do not use your training data or any knowledge not present in those passages. "
     "Do not extrapolate beyond what the passages explicitly state. "
     "If the answer is not clearly supported by the provided passages, say so explicitly. "
-    "Every response must cite the specific source document it drew from."
+    "If state law information is provided in the message, you may use it to answer questions about abortion legality in that state — cite the sources (KFF, Guttmacher Institute, Center for Reproductive Rights) and the last verified date. "
+    "Do not include source filenames or document names anywhere in your response."
 )
+
+CITATION_MAP = {
+    "acog_contraception_206.pdf":  "ACOG Practice Bulletin No. 206 (2016)",
+    "acog_ec_112.pdf":             "ACOG Practice Bulletin No. 112 (2015)",
+    "acog_ec_152.pdf":             "ACOG Practice Bulletin No. 152 (2015, reaffirmed 2025)",
+    "acog_ectopic_193.pdf":        "ACOG Practice Bulletin No. 193 (2018)",
+    "acog_epl_200.pdf":            "American College of Obstetricians and Gynecologists. (2018, reaffirmed 2025). Early pregnancy loss (Practice Bulletin No. 200). Obstetrics & Gynecology, 132(5), e197–e207.",
+    "acog_mab_225.pdf":            "ACOG Practice Bulletin No. 225 (2020)",
+    "acog_prepregnancy_762.pdf":   "ACOG Committee Opinion No. 762 (2019)",
+    "cdc-mec-summary-chart-2024.pdf": "CDC U.S. MEC Summary Chart (2024)",
+    "acep_pregnancy.pdf":          "ACEP Clinical Policy: Early Pregnancy (2012)",
+    "goldberg_2022_pul_mab.pdf":   "Goldberg et al. (2022)",
+    "clinical_obgyn_contraception_abortion.pdf": "Rivlin & Davis (2022). Contraception and abortion. In Comprehensive Gynecology (8th ed., pp. 238–254). Elsevier.",
+    "mua_2011.pdf": "Allison, Sherwood & Schust (2011). Management of first trimester pregnancy loss can be safely moved into the office. Reviews in Obstetrics & Gynecology, 4(1), 5–14.",
+    "acep_pregnancy_2017.pdf": "Hahn, Promes & Brown (2017). Clinical policy: Critical issues in the initial evaluation and management of patients presenting to the ED in early pregnancy. Annals of Emergency Medicine, 69(2), 241–250.",
+    "menon_ectopic.pdf":       "Menon S et al. (2007). Methotrexate treatment of ectopic pregnancy. Fertil Steril, 87(3), 481–484.",
+    "access-bridge-ectopic-restricted.pdf":   "ACCESS-Bridge. PUL & Ectopic Pregnancy in the ED (Restricted states). April 2025.",
+    "access-bridge-ectopic-unrestricted.pdf": "ACCESS-Bridge. PUL & Ectopic Pregnancy in the ED (Unrestricted states). April 2025.",
+    "fda_mifepristone.pdf": "U.S. Food and Drug Administration. Mifepristone (Mifeprex) prescribing information and REMS program. FDA.",
+    "rems_overview.txt":   "Mifepristone REMS Program Overview. Yukti clinical reference.",
+}
 
 NO_CONTEXT_RESPONSE = (
     "I cannot find a source in the approved guidelines for that recommendation. "
@@ -384,8 +480,56 @@ def _build_system_prompt(pathway: str) -> str:
     return BASE_SYSTEM_PROMPT + pathway_line
 
 
+FAREWELL_WORDS = {"bye", "goodbye", "see you", "later", "ttyl", "cya", "take care", "good night", "night"}
+GREETING_WORDS = {"hi", "hello", "hey", "howdy", "hiya", "sup", "what's up", "whats up", "good morning", "good afternoon", "good evening", "hello?", "hi?"}
+FILLER_WORDS = {"thanks", "thank you", "ty", "thx", "cheers", "ok", "okay", "cool", "great", "nice", "awesome", "got it", "sounds good", "lol", "haha", "test", "testing"}
+
+UI_HELP_RESPONSE = (
+    "To change your state or look up guidelines for a different state, click the state name "
+    "in the top-right corner of the header — it will open a dropdown where you can select "
+    "a different state. The legal status banners and state-specific guidance will update automatically."
+)
+
+CLINICAL_TERMS = {"hcg", "epl", "iup", "pul", "mab", "rems", "ectopic", "misoprostol",
+                   "mifepristone", "methotrexate", "ultrasound", "pregnancy", "bleeding",
+                   "abortion", "contraception", "ectopic", "placenta", "gestational", "fetal"}
+
+GREETING_RESPONSE = (
+    "Hi — I'm Yukti, a clinical decision support tool for reproductive health in the ED. "
+    "Ask me a clinical question and I'll search the approved guidelines to help."
+)
+FAREWELL_RESPONSE = "Take care."
+FILLER_RESPONSE = "Happy to help — ask me a clinical question anytime."
+
+UI_KEYWORDS = {"change state", "change the state", "switch state", "select state", "update state",
+               "how do i change", "how to change", "where do i change", "change my state",
+               "change location", "state input", "change state input",
+               "different state", "look up guidelines", "guidelines for a different", "another state",
+               "how do i use", "how do i navigate", "how does this tool", "how to use this"}
+
+def _off_topic_response(message: str):
+    cleaned = message.strip().lower().rstrip("!.,?")
+    if any(term in cleaned for term in CLINICAL_TERMS):
+        return None
+    if any(phrase in cleaned for phrase in UI_KEYWORDS):
+        return UI_HELP_RESPONSE
+    if cleaned in FAREWELL_WORDS or any(w in cleaned for w in FAREWELL_WORDS):
+        return FAREWELL_RESPONSE
+    if cleaned in GREETING_WORDS:
+        return GREETING_RESPONSE
+    if cleaned in FILLER_WORDS:
+        return FILLER_RESPONSE
+    if len(cleaned.split()) <= 2:
+        return FILLER_RESPONSE
+    return None
+
+
 @app.post("/api/chat", response_model=ChatResponse)
 def chat(request: ChatRequest):
+    off_topic = _off_topic_response(request.message)
+    if off_topic is not None:
+        return ChatResponse(response=off_topic, sources=[])
+
     chunks = retrieve(
         query=request.message,
         pathway=request.pathway or "",
@@ -409,6 +553,11 @@ def chat(request: ChatRequest):
 
     if request.pathway:
         message_parts.append(f"Active pathway: {request.pathway}")
+
+    # Inject state law context if query is about abortion legality in a specific state
+    state_law = _get_state_law_context(request.message)
+    if state_law:
+        message_parts.append(f"State law information (from KFF, Guttmacher Institute, Center for Reproductive Rights):\n{state_law}")
 
     if request.context:
         try:
@@ -439,16 +588,20 @@ def chat(request: ChatRequest):
 
     response_text = result.content[0].text
 
-    sources = [
-        {
-            "filename": chunk["source_filename"],
+    sources = []
+    seen = set()
+    for chunk in chunks:
+        fname = chunk["source_filename"]
+        citation = CITATION_MAP.get(fname, fname)
+        if citation in seen:
+            continue
+        seen.add(citation)
+        sources.append({
+            "citation": citation,
             "source_type": chunk["source_type"],
             "institution": chunk["institution"],
-            "pathways": chunk["pathways"],
             "score": chunk["score"],
-        }
-        for chunk in chunks
-    ]
+        })
 
     return ChatResponse(response=response_text, sources=sources)
 
@@ -479,7 +632,7 @@ class USInterpretResponse(BaseModel):
     classification: USClassification
 
 US_INTERPRET_SYSTEM_PROMPT = """You are a clinical ultrasound interpretation assistant for emergency medicine.
-Given a free-text ultrasound report, do TWO things:
+Given a free-text ultrasound report (and optionally a baseline hCG), do TWO things:
 
 STEP 1 — EXTRACT raw fields:
   gestational_sac (present/absent/not seen), msd_mm (float or null),
@@ -500,7 +653,13 @@ STEP 2 — CLASSIFY into exactly one of these categories using Doubilet 2013 / A
   high_suspicion_ectopic    → impression_key: "ectopic"
   confirmed_ectopic         → impression_key: "ectopic"
 
-  Provide criteria as short bullet strings listing the specific finding(s) that led to the classification.
+IMPORTANT classification rules:
+- If the report states "intrauterine pregnancy", "IUP", "IUGS confirmed", "intrauterine gestational sac", or any equivalent phrasing that explicitly confirms an intrauterine location, classify as confirmed_viable_iup (impression_key: "iup") — even if detailed sonographic measurements are not listed.
+- If a baseline hCG is provided, use 3,500 mIU/mL as the discriminatory zone (not 1,500–2,000). Above this threshold without a visible IUP on ultrasound raises ectopic concern.
+- Do not classify as PUL solely because detailed measurements are absent — if the report impression clearly states IUP, classify as IUP.
+- hCG alone is never sufficient to classify as PUL or ectopic without an ultrasound impression to support it.
+
+Provide criteria as short bullet strings listing the specific finding(s) that led to the classification.
 
 Return ONLY valid JSON — no markdown fences, no extra keys:
 {

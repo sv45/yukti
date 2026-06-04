@@ -8,6 +8,7 @@ Returns an empty list if no chunk scores above the similarity threshold —
 this is the primary anti-hallucination gate.
 """
 
+import os
 from pathlib import Path
 from typing import Optional
 
@@ -18,9 +19,10 @@ from sentence_transformers import SentenceTransformer
 # Config
 # ---------------------------------------------------------------------------
 BASE_DIR = Path(__file__).parent
-CHROMA_DIR = BASE_DIR / "chroma_db"
+# Allow override via env var for cloud deployment (e.g. Render persistent disk)
+CHROMA_DIR = Path(os.environ.get("CHROMA_DIR", str(BASE_DIR / "chroma_db")))
 
-TOP_K = 5
+TOP_K = 8
 SIMILARITY_THRESHOLD = 0.3  # chunks below this score are discarded
 
 _model: Optional[SentenceTransformer] = None
@@ -84,8 +86,7 @@ def retrieve(
     # Build optional where filter
     where_clauses = []
     if pathway:
-        # ChromaDB doesn't support LIKE; we use $contains on the pathways string
-        where_clauses.append({"pathways": {"$contains": pathway}})
+        where_clauses.append({f"pathway_{pathway}": {"$eq": "true"}})
     if institution:
         where_clauses.append(
             {
@@ -128,6 +129,8 @@ def retrieve(
     chunks = []
     for text, meta, distance in zip(documents, metadatas, distances):
         similarity = 1.0 - distance
+        if meta is None:
+            continue
         if similarity < SIMILARITY_THRESHOLD:
             continue
         chunks.append(
@@ -139,9 +142,12 @@ def retrieve(
                 "institution": meta.get("institution", ""),
                 "pathways": meta.get("pathways", ""),
                 "date_ingested": meta.get("date_ingested", ""),
+                "superseded": meta.get("superseded", False),
             }
         )
 
     # Sort descending by score (ChromaDB returns ascending distance)
     chunks.sort(key=lambda c: c["score"], reverse=True)
-    return chunks
+    # Prefer non-superseded; fall back to superseded if nothing else available
+    non_superseded = [c for c in chunks if not c["superseded"]]
+    return non_superseded if non_superseded else chunks

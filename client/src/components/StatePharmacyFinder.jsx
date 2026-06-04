@@ -225,10 +225,14 @@ export default function StatePharmacyFinder({ selectedState = "" }) {
                 </div>
                 <div style={{ fontSize: "12.5px", color: "var(--yk-ink-600)" }}>
                   {p.address}, {p.city}, {resolvedState?.state || activeState}
-                  {p.phone && (
-                    <> | <a href={`tel:${p.phone.replace(/\D/g, "")}`} style={{ color: "var(--yk-ink-600)", textDecoration: "none" }}>{p.phone}</a></>
-                  )}
                 </div>
+                {p.phone && (
+                  <div style={{ fontSize: "12.5px", marginTop: "3px" }}>
+                    <a href={`tel:${p.phone.replace(/\D/g, "")}`} style={{ color: "var(--yk-sage-700)", fontWeight: 600, textDecoration: "none" }}>
+                      📞 {p.phone}
+                    </a>
+                  </div>
+                )}
                 {p.hours && p.hours.length > 0 && (
                   <div style={{ marginTop: "6px" }}>
                     <button
